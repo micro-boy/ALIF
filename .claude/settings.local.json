@@ -5,7 +5,24 @@
       "Bash(cmd /c start:*)",
       "Bash(git init:*)",
       "Bash(git remote add:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git remote set-url:*)",
+      "Bash(git config:*)",
+      "Bash(git checkout:*)",
+      "Bash(start index.html)",
+      "Bash(mkdir:*)",
+      "Bash(curl:*)",
+      "Bash(ls:*)",
+      "Bash(start:*)",
+      "Bash(git rm:*)",
+      "WebFetch(domain:cdn.tailwindcss.com)",
+      "Bash(wget:*)",
+      "WebFetch(domain:unpkg.com)",
+      "WebFetch(domain:cdn.jsdelivr.net)",
+      "WebFetch(domain:cdnjs.cloudflare.com)",
+      "Bash(rm:*)"
     ],
     "deny": []
   }
