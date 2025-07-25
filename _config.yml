@@ -1,0 +1,8 @@
+theme: jekyll-theme-minimal
+title: ALIF Dashboard
+description: Dashboard Persiapan Asesmen Lapangan - Informatika
+
+exclude:
+  - tasks/
+  - CLAUDE.md
+  - .claude/
