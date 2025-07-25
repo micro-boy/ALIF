@@ -4,74 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dasbor Persiapan Asesmen Lapangan - Informatika</title>
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    <script src="https://unpkg.com/tailwindcss@^3/dist/tailwind.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="./tailwind.css" rel="stylesheet">
+    <script src="./js/chart.umd.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Chosen Palette: Academic Calm -->
-    <!-- Application Structure Plan: The application is designed as an interactive dashboard with a fixed sidebar for navigation and a main content area. A search feature has been added to the header for quick keyword-based access. This non-linear structure is chosen over the report's linear format to allow the accreditation team (Kaprodi, Dosen, etc.) to quickly jump to specific criteria or stakeholder interview guides without scrolling through a long document. The main sections are: 1) Beranda (Overview) explaining the core philosophy (PPEPP cycle). 2) Kriteria Penilaian (9 Criteria) with a tabbed interface for Focus, KPIs, Q&A, and Evidence. 3) Sesi Wawancara (Stakeholder Interviews) to prepare for triangulation. 4) Checklist Final for practical readiness. 5) Strategi Hari-H for tactical guidance. This user-centric design facilitates quick reference and targeted preparation, which is crucial under the pressure of accreditation. -->
-    <!-- Visualization & Content Choices: Data is presented using a mix of text, interactive diagrams, and charts to enhance understanding. Report Info: PPEPP Cycle -> Goal: Explain Process -> Viz/Method: Interactive HTML/CSS diagram -> Interaction: Hover/click to reveal details -> Justification: Makes the abstract quality cycle tangible. Report Info: Key Performance Indicators (e.g., KTW, % Dosen S3) -> Goal: Inform & Compare -> Viz/Method: Chart.js Donut/Bar Charts -> Interaction: Tooltips show target vs. actual values -> Justification: Visualizes quantitative targets and gaps instantly. Report Info: Key Questions -> Goal: Organize & Guide -> Viz/Method: HTML Accordion -> Interaction: Click to expand/collapse answers -> Justification: Prevents information overload and encourages active engagement with ideal answer frameworks. -->
-    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #F9FAFB; /* very light grey */
-        }
-        .chart-container {
-            position: relative;
-            width: 100%;
-            max-width: 300px;
-            margin-left: auto;
-            margin-right: auto;
-            height: 300px;
-            max-height: 300px;
-        }
-        @media (max-width: 768px) {
-            .chart-container {
-                height: 250px;
-                max-height: 250px;
-            }
-        }
-        .sidebar-item.active {
-            background-color: #1D4ED8; /* dark blue */
-            color: white;
-            font-weight: 600;
-        }
-        .tab-item.active {
-            border-bottom-color: #2563EB; /* blue */
-            color: #1E40AF; /* darker blue */
-            font-weight: 600;
-        }
-        .accordion-header {
-            cursor: pointer;
-        }
-        .accordion-content {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease-out;
-        }
-        .ppepp-item:hover .ppepp-desc {
-            opacity: 1;
-            transform: translateY(0);
-        }
-        .checklist-item input:checked + label {
-            text-decoration: line-through;
-            color: #6B7280;
-        }
-        #search-results a:hover {
-            background-color: #eff6ff;
-        }
-        .highlight {
-            background-color: #fef08a; /* yellow-200 */
-            padding: 1px 2px;
-            border-radius: 2px;
-        }
+        body { font-family: 'Inter', sans-serif; background-color: #F9FAFB; }
+        .chart-container { position: relative; width: 100%; max-width: 300px; margin-left: auto; margin-right: auto; height: 300px; max-height: 300px; }
+        @media (max-width: 768px) { .chart-container { height: 250px; max-height: 250px; } }
+        .sidebar-item.active { background-color: #1D4ED8; color: white; font-weight: 600; }
+        .tab-item.active { border-bottom-color: #2563EB; color: #1E40AF; font-weight: 600; }
+        .accordion-header { cursor: pointer; }
+        .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; }
+        .ppepp-item:hover .ppepp-desc { opacity: 1; transform: translateY(0); }
+        .checklist-item input:checked + label { text-decoration: line-through; color: #6B7280; }
+        #search-results a:hover { background-color: #eff6ff; }
+        .highlight { background-color: #fef08a; padding: 1px 2px; border-radius: 2px; }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800">
-
+    <!-- The rest of the body HTML from the previous version goes here. -->
+    <!-- It's identical to the one in the previous turn. -->
     <div class="flex h-screen">
         <!-- Sidebar -->
         <aside id="sidebar" class="w-64 bg-gray-800 text-white flex-shrink-0 flex-col p-4 space-y-2 hidden md:flex">
@@ -188,15 +142,7 @@
                             </div></div>
                             <div id="c2-qa" class="tab-content hidden"><div class="space-y-4"><div class="accordion-item border rounded-lg"><div class="accordion-header bg-gray-50 p-4 flex justify-between items-center"><h5 class="font-semibold">Apa temuan utama dari AMI terakhir dan tindak lanjutnya?</h5><span class="text-xl font-light">+</span></div><div class="accordion-content p-4 border-t bg-blue-50"><p class="font-bold text-blue-800 mb-2">Kerangka Jawaban Ideal (PPEPP):</p><ul class="list-decimal list-inside space-y-2 text-sm text-gray-700"><li><b>(Evaluasi):</b> "Temuan AMI 2023 adalah tingkat keterbacaan RPS oleh mahasiswa masih rendah (60%)."</li><li><b>(Pengendalian):</b> "Analisis menunjukkan format RPS padat teks. Kami membuat template visual baru dan mewajibkan dosen membahasnya di pertemuan pertama."</li><li><b>(Peningkatan):</b> "Target kami berikutnya 90%. Kami juga sedang mengembangkan fitur checklist 'telah membaca RPS' di e-learning."</li></ul></div></div><div class="accordion-item border rounded-lg"><div class="accordion-header bg-gray-50 p-4 flex justify-between items-center"><h5 class="font-semibold">Sebutkan 3 kerja sama unggulan yang paling berdampak.</h5><span class="text-xl font-light">+</span></div><div class="accordion-content p-4 border-t"><p class="text-sm text-gray-600">Fokus pada kerja sama yang menghasilkan outcome nyata: (1) **Pendidikan:** program magang terstruktur dengan perusahaan X yang diserap >50% pesertanya. (2) **Penelitian:** joint research dengan universitas Y di Malaysia menghasilkan 2 publikasi Scopus. (3) **PkM:** adopsi sistem informasi oleh Pemda Z hasil PkM dosen.</p></div></div></div></div>
                             <div id="c2-bukti" class="tab-content hidden"><div class="grid md:grid-cols-2 gap-4"><div><h4 class="font-semibold mb-2">Dokumen</h4><ul class="list-disc list-inside space-y-1 text-sm"><li>Struktur Organisasi dan Tata Kerja (SOTK)</li><li>Dokumen SPMI lengkap (Kebijakan, Manual, Standar, Formulir)</li><li>Laporan AMI dan Rapat Tinjauan Manajemen (RTM)</li><li>MoU/MoA/IA dengan mitra</li></ul></div><div><h4 class="font-semibold mb-2">Bukti Fisik/Digital</h4><ul class="list-disc list-inside space-y-1 text-sm"><li>Demo sistem informasi pendukung tata kelola</li><li>Foto, laporan, dan produk hasil kerja sama</li><li>Bukti keterlibatan mitra (surat, testimoni)</li></ul></div></div></div>
-                        </div>`,
-                    init: () => {
-                        const ctx = document.getElementById('c2-chart-kerjasama').getContext('2d');
-                        new Chart(ctx, {
-                            type: 'bar',
-                            data: { labels: ['Pendidikan', 'Penelitian', 'PkM'], datasets: [{ label: 'Jumlah Kerja Sama Aktif', data: [8, 12, 15], backgroundColor: ['#3B82F6', '#10B981', '#F59E0B'] }] },
-                            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, title: { display: true, text: 'Komposisi Kerja Sama Tridarma' } }, scales: { y: { beginAtZero: true } } }
-                        });
-                    }
+                        </div>`
                 },
                 c3: {
                     title: "Kriteria 3: Mahasiswa",
@@ -214,15 +160,7 @@
                             </div></div>
                             <div id="c3-qa" class="tab-content hidden"><div class="space-y-4"><div class="accordion-item border rounded-lg"><div class="accordion-header bg-gray-50 p-4 flex justify-between items-center"><h5 class="font-semibold">Program apa untuk mendorong prestasi mahasiswa?</h5><span class="text-xl font-light">+</span></div><div class="accordion-content p-4 border-t bg-blue-50"><p class="font-bold text-blue-800 mb-2">Kerangka Jawaban Ideal (PPEPP):</p><ul class="list-decimal list-inside space-y-2 text-sm text-gray-700"><li><b>(Penetapan):</b> "Standar kami: 10% mahasiswa aktif terlibat kompetisi per tahun."</li><li><b>(Pelaksanaan):</b> "Kami ada program sosialisasi, pembentukan kelompok studi, dan insentif dana."</li><li><b>(Evaluasi):</b> "Capaian 8%, di bawah target. Kendala: kemampuan bahasa Inggris & penulisan proposal."</li><li><b>(Pengendalian & Peningkatan):</b> "Kami buat coaching clinic penulisan proposal dalam Bahasa Inggris, target selanjutnya 1 tim lolos internasional."</li></ul></div></div></div></div>
                             <div id="c3-bukti" class="tab-content hidden"><div class="grid md:grid-cols-2 gap-4"><div><h4 class="font-semibold mb-2">Dokumen</h4><ul class="list-disc list-inside space-y-1 text-sm"><li>SOP penerimaan mahasiswa baru</li><li>Panduan layanan kemahasiswaan</li><li>SK pembimbing dan laporan kegiatan kemahasiswaan</li></ul></div><div><h4 class="font-semibold mb-2">Bukti Fisik/Digital</h4><ul class="list-disc list-inside space-y-1 text-sm"><li>Sertifikat/piagam prestasi mahasiswa</li><li>Website/medsos yang aktif mempublikasikan prestasi</li><li>Testimoni dari mahasiswa juara</li></ul></div></div></div>
-                        </div>`,
-                    init: () => {
-                        const ctx = document.getElementById('c3-chart-prestasi').getContext('2d');
-                        new Chart(ctx, {
-                            type: 'bar',
-                            data: { labels: ['Nasional', 'Internasional'], datasets: [{ label: 'Jumlah Prestasi 3 Tahun Terakhir', data: [15, 3], backgroundColor: ['#3B82F6', '#10B981'] }] },
-                            options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, title: { display: true, text: 'Rekap Prestasi Mahasiswa' } } }
-                        });
-                    }
+                        </div>`
                 },
                 c4: {
                     title: "Kriteria 4: Sumber Daya Manusia",
@@ -240,15 +178,7 @@
                             </div></div>
                             <div id="c4-qa" class="tab-content hidden"><div class="space-y-4"><div class="accordion-item border rounded-lg"><div class="accordion-header bg-gray-50 p-4 flex justify-between items-center"><h5 class="font-semibold">Bagaimana strategi prodi meningkatkan jumlah dosen S3?</h5><span class="text-xl font-light">+</span></div><div class="accordion-content p-4 border-t bg-blue-50"><p class="font-bold text-blue-800 mb-2">Kerangka Jawaban Ideal (PPEPP):</p><ul class="list-decimal list-inside space-y-2 text-sm text-gray-700"><li><b>(Penetapan):</b> "Renstra kami menargetkan 50% dosen S3 pada 2027."</li><li><b>(Pelaksanaan):</b> "Kami punya peta jalan studi lanjut, info beasiswa, dan penyesuaian beban kerja."</li><li><b>(Evaluasi):</b> "Capaian saat ini 35%. Kendala: pencarian promotor dan universitas tujuan."</li><li><b>(Pengendalian & Peningkatan):</b> "Kami inisiasi program mentoring dengan dosen senior dan kerja sama fast track S3 dengan universitas mitra."</li></ul></div></div></div></div>
                             <div id="c4-bukti" class="tab-content hidden"><div class="grid md:grid-cols-2 gap-4"><div><h4 class="font-semibold mb-2">Dokumen</h4><ul class="list-disc list-inside space-y-1 text-sm"><li>SK DTPS, Ijazah, Serdos, SK Jabfung</li><li>Laporan Beban Kerja Dosen (BKD)</li><li>Peta jalan pengembangan SDM</li></ul></div><div><h4 class="font-semibold mb-2">Bukti Fisik/Digital</h4><ul class="list-disc list-inside space-y-1 text-sm"><li>Profil dosen & keahlian di website</li><li>CV lengkap setiap dosen</li><li>Bukti dukungan studi lanjut (surat tugas)</li></ul></div></div></div>
-                        </div>`,
-                    init: () => {
-                        const ctx = document.getElementById('c4-chart-s3').getContext('2d');
-                        new Chart(ctx, {
-                            type: 'doughnut',
-                            data: { labels: ['Doktor (S3)', 'Magister (S2)'], datasets: [{ data: [35, 65], backgroundColor: ['#10B981', '#6B7280'] }] },
-                            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' }, title: { display: true, text: 'Kualifikasi Akademik DTPS' } } }
-                        });
-                    }
+                        </div>`
                 },
                 c5: {
                     title: "Kriteria 5: Keuangan, Sarana, Prasarana",
@@ -283,15 +213,7 @@
                             </div></div>
                             <div id="c6-qa" class="tab-content hidden"><div class="space-y-4"><div class="accordion-item border rounded-lg"><div class="accordion-header bg-gray-50 p-4 flex justify-between items-center"><h5 class="font-semibold">Bagaimana proses peninjauan kurikulum dilakukan?</h5><span class="text-xl font-light">+</span></div><div class="accordion-content p-4 border-t bg-blue-50"><p class="font-bold text-blue-800 mb-2">Kerangka Jawaban Ideal (PPEPP):</p><ul class="list-decimal list-inside space-y-2 text-sm text-gray-700"><li><b>(Penetapan):</b> "Standar kami: tinjauan mayor tiap 4 tahun, minor tiap tahun, melibatkan stakeholder."</li><li><b>(Pelaksanaan):</b> "Tinjauan 2023 melibatkan dosen, mahasiswa, alumni, dan industri melalui survei & FGD."</li><li><b>(Evaluasi):</b> "Ditemukan kebutuhan mendesak untuk teknologi containerization (Docker, Kubernetes)."</li><li><b>(Pengendalian & Peningkatan):</b> "Kami integrasikan modul ini ke MK Jaringan Lanjut & Sistem Terdistribusi. Efektivitasnya akan diukur via tracer study berikutnya."</li></ul></div></div></div></div>
                             <div id="c6-bukti" class="tab-content hidden"><div class="grid md:grid-cols-2 gap-4"><div><h4 class="font-semibold mb-2">Dokumen</h4><ul class="list-disc list-inside space-y-1 text-sm"><li>Dokumen kurikulum lengkap (CPL, struktur MK)</li><li>Kumpulan RPS seluruh MK</li><li>Notulensi lokakarya peninjauan kurikulum</li><li>Laporan pelaksanaan MBKM & panduan TA</li></ul></div><div><h4 class="font-semibold mb-2">Bukti Fisik/Digital</h4><ul class="list-disc list-inside space-y-1 text-sm"><li>Demo e-learning (RPS, materi, aktivitas)</li><li>Contoh tugas, proyek, dan laporan TA</li><li>Testimoni mahasiswa tentang proses belajar</li></ul></div></div></div>
-                        </div>`,
-                    init: () => {
-                        const ctx = document.getElementById('c6-chart-mbkm').getContext('2d');
-                        new Chart(ctx, {
-                            type: 'doughnut',
-                            data: { labels: ['Ikut MBKM', 'Belum Ikut'], datasets: [{ data: [8, 92], backgroundColor: ['#3B82F6', '#D1D5DB'] }] },
-                            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' }, title: { display: true, text: 'Partisipasi Mahasiswa MBKM (Contoh: 8%)' } } }
-                        });
-                    }
+                        </div>`
                 },
                 c7: {
                     title: "Kriteria 7: Penelitian",
@@ -305,15 +227,7 @@
                             <div id="c7-indikator" class="tab-content hidden"><div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6"><div class="border p-4 rounded-lg"><h4 class="font-semibold">C.7.1 Peta Jalan Penelitian (Bobot: 2)</h4><p class="text-sm mt-2">Menilai adanya peta jalan penelitian yang sistematis dan selaras Visi Keilmuan prodi.</p></div><div class="border p-4 rounded-lg"><h4 class="font-semibold">C.7.4 Keterlibatan Mahasiswa & Produktivitas (Bobot: 3)</h4><p class="text-sm mt-2">Target Skor 4: ≥10% TA mahasiswa bagian dari riset dosen, dan rata-rata ≥3 penelitian/dosen/3 tahun.</p></div><div class="border p-4 rounded-lg"><h4 class="font-semibold">C.9.18 Hak Kekayaan Intelektual (HKI) (Bobot: 8)</h4><p class="text-sm mt-2">Penilaian sangat tinggi untuk Paten (granted/terdaftar). Menunjukkan inovasi dan kebaruan.</p><div class="chart-container mt-4 mx-auto"><canvas id="c7-chart-hki"></canvas></div></div></div></div>
                             <div id="c7-qa" class="tab-content hidden"><div class="space-y-4"><div class="accordion-item border rounded-lg"><div class="accordion-header bg-gray-50 p-4 flex justify-between items-center"><h5 class="font-semibold">Jelaskan peta jalan penelitian di prodi ini.</h5><span class="text-xl font-light">+</span></div><div class="accordion-content p-4 border-t"><p class="text-sm text-gray-600">Jelaskan tema-tema unggulan dalam peta jalan dan bagaimana peta jalan tersebut diturunkan menjadi topik riset dosen dan kelompok keahlian, serta keselarasan dengan Renstra.</p></div></div><div class="accordion-item border rounded-lg"><div class="accordion-header bg-gray-50 p-4 flex justify-between items-center"><h5 class="font-semibold">Bagaimana mekanisme pelibatan mahasiswa dalam penelitian dosen?</h5><span class="text-xl font-light">+</span></div><div class="accordion-content p-4 border-t"><p class="text-sm text-gray-600">Berikan contoh konkret skema Tugas Akhir di bawah payung penelitian dosen, keterlibatan dalam hibah, atau sebagai asisten peneliti. Tunjukkan data persentasenya.</p></div></div><div class="accordion-item border rounded-lg"><div class="accordion-header bg-gray-50 p-4 flex justify-between items-center"><h5 class="font-semibold">Bagaimana prodi mendorong peningkatan jumlah publikasi internasional?</h5><span class="text-xl font-light">+</span></div><div class="accordion-content p-4 border-t bg-blue-50"><p class="font-bold text-blue-800 mb-2">Kerangka Jawaban Ideal (PPEPP):</p><ul class="list-decimal list-inside space-y-2 text-sm text-gray-700"><li><b>(Penetapan):</b> "IKU kami menargetkan peningkatan publikasi Scopus 20% per tahun."</li><li><b>(Pelaksanaan):</b> "Kami meluncurkan program 'Insentif Publikasi Internasional' dan 'Writing Camp'."</li><li><b>(Evaluasi):</b> "Evaluasi tahun lalu peningkatan 15%, kendala utama adalah biaya publikasi (APC)."</li><li><b>(Pengendalian & Peningkatan):</b> "Kami merealokasi anggaran untuk menyediakan 'Bantuan Dana APC' di awal. Kami optimis target akan tercapai."</li></ul></div></div></div></div>
                             <div id="c7-bukti" class="tab-content hidden"><div class="grid md:grid-cols-2 gap-4"><div><h4 class="font-semibold mb-2">Dokumen</h4><ul class="list-disc list-inside space-y-1 text-sm"><li>Dokumen Peta Jalan Penelitian</li><li>SK Tim Reviewer Penelitian Internal</li><li>Laporan penelitian dosen</li><li>Daftar publikasi ilmiah DTPS & Sertifikat HKI</li></ul></div><div><h4 class="font-semibold mb-2">Bukti Fisik/Digital</h4><ul class="list-disc list-inside space-y-1 text-sm"><li>Repositori publikasi institusi (live demo)</li><li>Profil Google Scholar/Scopus para dosen</li><li>Contoh produk/prototipe hasil penelitian</li></ul></div></div></div>
-                        </div>`,
-                    init: () => {
-                        const ctx = document.getElementById('c7-chart-hki').getContext('2d');
-                        new Chart(ctx, {
-                            type: 'doughnut',
-                            data: { labels: ['Paten Granted', 'Paten Terdaftar', 'Hak Cipta', 'Lainnya'], datasets: [{ label: 'Jumlah HKI', data: [2, 5, 15, 8], backgroundColor: ['#10B981', '#3B82F6', '#F59E0B', '#6B7280'] }] },
-                            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' }, title: { display: true, text: 'Komposisi HKI (Contoh)' } } }
-                        });
-                    }
+                        </div>`
                 },
                 c8: {
                     title: "Kriteria 8: Pengabdian kepada Masyarakat",
@@ -331,15 +245,7 @@
                             </div></div>
                             <div id="c8-qa" class="tab-content hidden"><div class="space-y-4"><div class="accordion-item border rounded-lg"><div class="accordion-header bg-gray-50 p-4 flex justify-between items-center"><h5 class="font-semibold">Sebutkan PkM unggulan dan jelaskan dampaknya.</h5><span class="text-xl font-light">+</span></div><div class="accordion-content p-4 border-t bg-blue-50"><p class="font-bold text-blue-800 mb-2">Kerangka Jawaban Ideal (PPEPP):</p><ul class="list-decimal list-inside space-y-2 text-sm text-gray-700"><li><b>(Pelaksanaan):</b> "PkM unggulan kami: 'Implementasi Sistem Kasir Digital untuk UMKM Kuliner di Desa X'."</li><li><b>(Evaluasi):</b> "Setelah 6 bulan, 80% UMKM aktif menggunakan. Ada efisiensi waktu pencatatan 30 menit/hari."</li><li><b>(Pengendalian):</b> "Umpan balik: fitur manajemen stok sulit digunakan."</li><li><b>(Peningkatan):</b> "Tim mahasiswa sedang mengembangkan versi 2.0 dengan UI lebih sederhana. Kami berencana mereplikasi program ini ke desa tetangga."</li></ul></div></div></div></div>
                             <div id="c8-bukti" class="tab-content hidden"><div class="grid md:grid-cols-2 gap-4"><div><h4 class="font-semibold mb-2">Dokumen</h4><ul class="list-disc list-inside space-y-1 text-sm"><li>Dokumen Peta Jalan PkM</li><li>Laporan kegiatan PkM (proposal, laporan akhir)</li><li>Daftar PkM DTPS</li></ul></div><div><h4 class="font-semibold mb-2">Bukti Fisik/Digital</h4><ul class="list-disc list-inside space-y-1 text-sm"><li>Produk hasil PkM (aplikasi, website)</li><li>Dokumentasi kegiatan (foto, video)</li><li>Surat keterangan atau testimoni dari mitra</li></ul></div></div></div>
-                        </div>`,
-                    init: () => {
-                        const ctx = document.getElementById('c8-chart-dana').getContext('2d');
-                        new Chart(ctx, {
-                            type: 'pie',
-                            data: { labels: ['Eksternal', 'Internal PT'], datasets: [{ data: [40, 60], backgroundColor: ['#10B981', '#6B7280'] }] },
-                            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' }, title: { display: true, text: 'Sumber Pendanaan PkM (%)' } } }
-                        });
-                    }
+                        </div>`
                 },
                 c9: {
                     title: "Kriteria 9: Luaran dan Capaian",
@@ -357,15 +263,7 @@
                             </div></div>
                             <div id="c9-qa" class="tab-content hidden"><div class="space-y-4"><div class="accordion-item border rounded-lg"><div class="accordion-header bg-gray-50 p-4 flex justify-between items-center"><h5 class="font-semibold">Bagaimana hasil tracer study digunakan untuk perbaikan?</h5><span class="text-xl font-light">+</span></div><div class="accordion-content p-4 border-t bg-blue-50"><p class="font-bold text-blue-800 mb-2">Kerangka Jawaban Ideal (PPEPP):</p><ul class="list-decimal list-inside space-y-2 text-sm text-gray-700"><li><b>(Evaluasi):</b> "Tracer study 2023 menunjukkan RMT 4.5 bulan, PBS 85%. Namun, 40% alumni merasa kurang dalam kemampuan negosiasi dan presentasi bisnis."</li><li><b>(Pengendalian):</b> "Analisis RTM menyimpulkan kurikulum kami lemah di soft skills komunikasi profesional."</li><li><b>(Peningkatan):</b> "Kami adakan workshop 'Professional Communication Skills' untuk mhs tingkat akhir dan merevisi bobot penilaian presentasi di Proyek Akhir. Dampaknya akan diukur di tracer study berikutnya."</li></ul></div></div></div></div>
                             <div id="c9-bukti" class="tab-content hidden"><div class="grid md:grid-cols-2 gap-4"><div><h4 class="font-semibold mb-2">Dokumen</h4><ul class="list-disc list-inside space-y-1 text-sm"><li>Laporan kelulusan (rekap IPK, masa studi)</li><li>Laporan tracer study komprehensif</li><li>Laporan survei kepuasan pengguna</li><li>Daftar prestasi, publikasi, HKI</li></ul></div><div><h4 class="font-semibold mb-2">Bukti Fisik/Digital</h4><ul class="list-disc list-inside space-y-1 text-sm"><li>Demo platform tracer study online</li><li>Bukti tindak lanjut hasil tracer study (notulensi rapat kurikulum, SK workshop baru)</li></ul></div></div></div>
-                        </div>`,
-                    init: () => {
-                        const ctx = document.getElementById('c9-chart-ktw').getContext('2d');
-                        new Chart(ctx, {
-                            type: 'bar',
-                            data: { labels: ['Tepat Waktu', 'Terlambat'], datasets: [{ label: 'Persentase Kelulusan', data: [75, 25], backgroundColor: ['#10B981', '#EF4444'] }] },
-                            options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, title: { display: true, text: 'Kelulusan Tepat Waktu (KTW)' } } }
-                        });
-                    }
+                        </div>`
                 },
                 referensi: {
                     title: "Referensi & Daftar Pustaka",
@@ -408,9 +306,9 @@
                                 <div class="accordion-item border rounded-lg"><div class="accordion-header bg-gray-50 p-4 flex justify-between items-center"><h5 class="font-semibold text-blue-800">Pimpinan (Dekan/Kaprodi)</h5><span class="text-xl font-light">+</span></div><div class="accordion-content p-4 border-t text-sm"><h4 class="font-semibold mb-2">Fokus Asesor:</h4><p class="mb-4">Pemahaman holistik, kepemimpinan strategis, dan kemampuan membuktikan budaya mutu melalui siklus PPEPP.</p><h4 class="font-semibold mb-2">Contoh Pertanyaan:</h4><ul class="list-disc list-inside mb-4 space-y-1"><li>Bagaimana strategi pengembangan prodi ke depan?</li><li>Bagaimana Anda menjamin mutu tridarma?</li><li>Apa temuan AMI terakhir dan tindak lanjutnya?</li></ul><h4 class="font-semibold mb-2">Poin Kunci Jawaban:</h4><ul class="list-disc list-inside space-y-1"><li>Sampaikan narasi besar menggunakan alur PPEPP.</li><li>Tunjukkan penguasaan data di LKPS dan analisis di LED.</li><li>Hubungkan semua jawaban dengan VMTS dan Renstra.</li></ul></div></div>
                                 <div class="accordion-item border rounded-lg"><div class="accordion-header bg-gray-50 p-4 flex justify-between items-center"><h5 class="font-semibold text-blue-800">Dosen (DTPS)</h5><span class="text-xl font-light">+</span></div><div class="accordion-content p-4 border-t text-sm"><h4 class="font-semibold mb-2">Fokus Asesor:</h4><p class="mb-4">Kondisi kerja, keseimbangan beban, keterlibatan aktif dalam tridarma, dan pemahaman sebagai ujung tombak penjaminan mutu.</p><h4 class="font-semibold mb-2">Contoh Pertanyaan:</h4><ul class="list-disc list-inside mb-4 space-y-1"><li>Berapa EWMP Anda? Apakah memungkinkan untuk riset?</li><li>Bagaimana riset Anda diintegrasikan ke pengajaran?</li><li>Bagaimana prodi mendukung pengembangan Anda?</li></ul><h4 class="font-semibold mb-2">Poin Kunci Jawaban:</h4><ul class="list-disc list-inside space-y-1"><li>Jawab sesuai fakta dan data BKD.</li><li>Berikan contoh konkret integrasi riset/PkM ke kelas.</li><li>Sampaikan pemahaman yang baik tentang VMTS prodi.</li></ul></div></div>
                                 <div class="accordion-item border rounded-lg"><div class="accordion-header bg-gray-50 p-4 flex justify-between items-center"><h5 class="font-semibold text-blue-800">Mahasiswa</h5><span class="text-xl font-light">+</span></div><div class="accordion-content p-4 border-t text-sm"><h4 class="font-semibold mb-2">Fokus Asesor:</h4><p class="mb-4">Pengalaman belajar (*student experience*), efektivitas layanan, kualitas interaksi dengan dosen.</p><h4 class="font-semibold mb-2">Contoh Pertanyaan:</h4><ul class="list-disc list-inside mb-4 space-y-1"><li>Apakah Anda tahu CPL prodi ini?</li><li>Bagaimana proses bimbingan akademik dengan Dosen PA?</li><li>Apakah fasilitas lab/internet memadai?</li></ul><h4 class="font-semibold mb-2">Poin Kunci Jawaban:</h4><ul class="list-disc list-inside space-y-1"><li>Jawab secara jujur berdasarkan pengalaman.</li><li>Sebutkan layanan atau fasilitas yang paling bermanfaat.</li><li>Jika ada kekurangan, sampaikan secara konstruktif beserta harapan.</li></ul></div></div>
-                                <div class="accordion-item border rounded-lg"><div class="accordion-header bg-gray-50 p-4 flex justify-between items-center"><h5 class="font-semibold text-blue-800">Alumni</h5><span class="text-xl font-light">+</span></div><div class="accordion-content p-4 border-t text-sm"><h4 class="font-semibold mb-2">Fokus Asesor:</h4><p class="mb-4">Mengukur outcome terpenting: keberhasilan lulusan di dunia kerja, relevansi kurikulum, dan efektivitas *tracer study*.</p><h4 class="font-semibold mb-2">Contoh Pertanyaan:</h4><ul class="list-disc list-inside mb-4 space-y-1"><li>Berapa lama Anda mendapat pekerjaan pertama?</li><li>Seberapa relevan kurikulum dengan pekerjaan Anda?</li><li>Apakah prodi pernah menghubungi Anda untuk *tracer study*?</li></ul><h4 class="font-semibold mb-2">Poin Kunci Jawaban:</h4><ul class="list-disc list-inside space-y-1"><li>Sampaikan data masa tunggu & kesesuaian kerja sesuai fakta.</li><li>Berikan masukan konstruktif tentang kurikulum.</li><li>Konfirmasi keikutsertaan dalam *tracer study*.</li></ul></div></div>
-                                <div class="accordion-item border rounded-lg"><div class="accordion-header bg-gray-50 p-4 flex justify-between items-center"><h5 class="font-semibold text-blue-800">Pengguna Lulusan</h5><span class="text-xl font-light">+</span></div><div class="accordion-content p-4 border-t text-sm"><h4 class="font-semibold mb-2">Fokus Asesor:</h4><p class="mb-4">Validasi eksternal mengenai kualitas lulusan dan relevansi program studi dengan kebutuhan industri.</p><h4 class="font-semibold mb-2">Contoh Pertanyaan:</h4><ul class="list-disc list-inside mb-4 space-y-1"><li>Bagaimana kompetensi lulusan kami (*hard & soft skills*)?</li><li>Apakah prodi pernah melibatkan Anda dalam peninjauan kurikulum?</li><li>Apa saran Anda agar lulusan kami lebih berdaya saing?</li></ul><h4 class="font-semibold mb-2">Poin Kunci Jawaban:</h4><ul class="list-disc list-inside space-y-1"><li>Berikan penilaian objektif terhadap kompetensi lulusan.</li><li>Konfirmasi keterlibatan dalam kegiatan prodi (kuliah tamu, FGD).</li><li>Sampaikan saran konkret untuk peningkatan mutu lulusan.</li></ul></div></div>
-                                <div class="accordion-item border rounded-lg"><div class="accordion-header bg-gray-50 p-4 flex justify-between items-center"><h5 class="font-semibold text-blue-800">Tenaga Kependidikan</h5><span class="text-xl font-light">+</span></div><div class="accordion-content p-4 border-t text-sm"><h4 class="font-semibold mb-2">Fokus Asesor:</h4><p class="mb-4">Efektivitas layanan administrasi, pemeliharaan sarana, dan pengembangan diri tendik.</p><h4 class="font-semibold mb-2">Contoh Pertanyaan:</h4><ul class="list-disc list-inside mb-4 space-y-1"><li>Bagaimana alur layanan administrasi akademik?</li><li>Bagaimana proses pemeliharaan sarana lab?</li><li>Program pengembangan apa yang pernah Anda ikuti?</li></ul><h4 class="font-semibold mb-2">Poin Kunci Jawaban:</h4><ul class="list-disc list-inside space-y-1"><li>Jelaskan alur layanan sesuai SOP yang berlaku.</li><li>Tunjukkan pemahaman tentang tugas dan tanggung jawab.</li><li>Sampaikan pengalaman positif tentang program pelatihan.</li></ul></div></div>
+                                <div class="accordion-item border rounded-lg"><div class="accordion-header bg-gray-50 p-4 flex justify-between items-center"><h5 class="font-semibold text-blue-800">Alumni</h5><span class="text-xl font-light">+</span></div><div class="accordion-content p-4 border-t text-sm"><h4 class="font-semibold mb-2">Fokus Asesor:</h4><p class="mb-4">Mengukur outcome terpenting: keberhasilan lulusan di dunia kerja, relevansi kurikulum, dan efektivitas *tracer study*.</p<h4 class="font-semibold mb-2">Contoh Pertanyaan:</h4><ul class="list-disc list-inside mb-4 space-y-1"><li>Berapa lama Anda mendapat pekerjaan pertama?</li><li>Seberapa relevan kurikulum dengan pekerjaan Anda?</li><li>Apakah prodi pernah menghubungi Anda untuk *tracer study*?</li></ul><h4 class="font-semibold mb-2">Poin Kunci Jawaban:</h4><ul class="list-disc list-inside space-y-1"><li>Sampaikan data masa tunggu & kesesuaian kerja sesuai fakta.</li><li>Berikan masukan konstruktif tentang kurikulum.</li><li>Konfirmasi keikutsertaan dalam *tracer study*.</li></ul></div></div>
+                                <div class="accordion-item border rounded-lg"><div class="accordion-header bg-gray-50 p-4 flex justify-between items-center"><h5 class="font-semibold text-blue-800">Pengguna Lulusan</h5><span class="text-xl font-light">+</span></div><div class="accordion-content p-4 border-t text-sm"><h4 class="font-semibold mb-2">Fokus Asesor:</h4><p class="mb-4">Validasi eksternal mengenai kualitas lulusan dan relevansi program studi dengan kebutuhan industri.</p<h4 class="font-semibold mb-2">Contoh Pertanyaan:</h4><ul class="list-disc list-inside mb-4 space-y-1"><li>Bagaimana kompetensi lulusan kami (*hard & soft skills*)?</li><li>Apakah prodi pernah melibatkan Anda dalam peninjauan kurikulum?</li><li>Apa saran Anda agar lulusan kami lebih berdaya saing?</li></ul><h4 class="font-semibold mb-2">Poin Kunci Jawaban:</h4><ul class="list-disc list-inside space-y-1"><li>Berikan penilaian objektif terhadap kompetensi lulusan.</li><li>Konfirmasi keterlibatan dalam kegiatan prodi (kuliah tamu, FGD).</li><li>Sampaikan saran konkret untuk peningkatan mutu lulusan.</li></ul></div></div>
+                                <div class="accordion-item border rounded-lg"><div class="accordion-header bg-gray-50 p-4 flex justify-between items-center"><h5 class="font-semibold text-blue-800">Tenaga Kependidikan</h5><span class="text-xl font-light">+</span></div><div class="accordion-content p-4 border-t text-sm"><h4 class="font-semibold mb-2">Fokus Asesor:</h4><p class="mb-4">Efektivitas layanan administrasi, pemeliharaan sarana, dan pengembangan diri tendik.</p<h4 class="font-semibold mb-2">Contoh Pertanyaan:</h4><ul class="list-disc list-inside mb-4 space-y-1"><li>Bagaimana alur layanan administrasi akademik?</li><li>Bagaimana proses pemeliharaan sarana lab?</li><li>Program pengembangan apa yang pernah Anda ikuti?</li></ul><h4 class="font-semibold mb-2">Poin Kunci Jawaban:</h4><ul class="list-disc list-inside space-y-1"><li>Jelaskan alur layanan sesuai SOP yang berlaku.</li><li>Tunjukkan pemahaman tentang tugas dan tanggung jawab.</li><li>Sampaikan pengalaman positif tentang program pelatihan.</li></ul></div></div>
                             </div>
                         </div>`
                 },
@@ -472,30 +370,7 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    `,
-                    init: () => {
-                        const container = document.getElementById('checklist-container');
-                        if (!container) return;
-
-                        const checkboxes = container.querySelectorAll('input[type="checkbox"]');
-                        const total = checkboxes.length;
-                        const progressBar = document.getElementById('progress-bar');
-                        const progressText = document.getElementById('progress-text');
-
-                        const updateProgress = () => {
-                            const checkedCount = container.querySelectorAll('input[type="checkbox"]:checked').length;
-                            const percentage = total > 0 ? Math.round((checkedCount / total) * 100) : 0;
-                            progressBar.style.width = `${percentage}%`;
-                            progressText.textContent = `${percentage}%`;
-                        };
-
-                        checkboxes.forEach(checkbox => {
-                            checkbox.addEventListener('change', updateProgress);
-                        });
-
-                        updateProgress();
-                    }
+                        </div>`
                 },
                 strategi: {
                     title: "Strategi Hari-H: Jadwal & Etika",
@@ -559,9 +434,22 @@
                         </div>
                     `
                 }
+            },
+            initFunctions: {
+                c2: () => { const ctx = document.getElementById('c2-chart-kerjasama').getContext('2d'); return new Chart(ctx, { type: 'bar', data: { labels: ['Pendidikan', 'Penelitian', 'PkM'], datasets: [{ label: 'Jumlah Kerja Sama Aktif', data: [8, 12, 15], backgroundColor: ['#3B82F6', '#10B981', '#F59E0B'] }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, title: { display: true, text: 'Komposisi Kerja Sama Tridarma' } }, scales: { y: { beginAtZero: true } } } }); },
+                c3: () => { const ctx = document.getElementById('c3-chart-prestasi').getContext('2d'); return new Chart(ctx, { type: 'bar', data: { labels: ['Nasional', 'Internasional'], datasets: [{ label: 'Jumlah Prestasi 3 Tahun Terakhir', data: [15, 3], backgroundColor: ['#3B82F6', '#10B981'] }] }, options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, title: { display: true, text: 'Rekap Prestasi Mahasiswa' } } } }); },
+                c4: () => { const ctx = document.getElementById('c4-chart-s3').getContext('2d'); return new Chart(ctx, { type: 'doughnut', data: { labels: ['Doktor (S3)', 'Magister (S2)'], datasets: [{ data: [35, 65], backgroundColor: ['#10B981', '#6B7280'] }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' }, title: { display: true, text: 'Kualifikasi Akademik DTPS' } } } }); },
+                c6: () => { const ctx = document.getElementById('c6-chart-mbkm').getContext('2d'); return new Chart(ctx, { type: 'doughnut', data: { labels: ['Ikut MBKM', 'Belum Ikut'], datasets: [{ data: [8, 92], backgroundColor: ['#3B82F6', '#D1D5DB'] }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' }, title: { display: true, text: 'Partisipasi Mahasiswa MBKM (Contoh: 8%)' } } } }); },
+                c7: () => { const ctx = document.getElementById('c7-chart-hki').getContext('2d'); return new Chart(ctx, { type: 'doughnut', data: { labels: ['Paten Granted', 'Paten Terdaftar', 'Hak Cipta', 'Lainnya'], datasets: [{ label: 'Jumlah HKI', data: [2, 5, 15, 8], backgroundColor: ['#10B981', '#3B82F6', '#F59E0B', '#6B7280'] }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' }, title: { display: true, text: 'Komposisi HKI (Contoh)' } } } }); },
+                c8: () => { const ctx = document.getElementById('c8-chart-dana').getContext('2d'); return new Chart(ctx, { type: 'pie', data: { labels: ['Eksternal', 'Internal PT'], datasets: [{ data: [40, 60], backgroundColor: ['#10B981', '#6B7280'] }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' }, title: { display: true, text: 'Sumber Pendanaan PkM (%)' } } } }); },
+                c9: () => { const ctx = document.getElementById('c9-chart-ktw').getContext('2d'); return new Chart(ctx, { type: 'bar', data: { labels: ['Tepat Waktu', 'Terlambat'], datasets: [{ label: 'Persentase Kelulusan', data: [75, 25], backgroundColor: ['#10B981', '#EF4444'] }] }, options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, title: { display: true, text: 'Kelulusan Tepat Waktu (KTW)' } } } }); },
+                checklist: () => { const container = document.getElementById('checklist-container'); if (!container) return; const checkboxes = container.querySelectorAll('input[type="checkbox"]'); const total = checkboxes.length; const progressBar = document.getElementById('progress-bar'); const progressText = document.getElementById('progress-text'); const updateProgress = () => { const checkedCount = container.querySelectorAll('input[type="checkbox"]:checked').length; const percentage = total > 0 ? Math.round((checkedCount / total) * 100) : 0; progressBar.style.width = `${percentage}%`; progressText.textContent = `${percentage}%`; }; checkboxes.forEach(checkbox => { checkbox.addEventListener('change', updateProgress); }); updateProgress(); }
             }
         };
         
+        // This is a simplified JavaScript part.
+        // The full JavaScript code from the previous version goes here.
+        // It's identical to the one in the previous turn.
         let searchableIndex = [];
         let currentSearchTerm = '';
 
@@ -687,15 +575,13 @@
                 }
             });
             
-            if (pageData.init && typeof pageData.init === 'function') {
+            const initFn = appData.initFunctions[pageId];
+            if (initFn && typeof initFn === 'function') {
                 setTimeout(() => {
-                    pageData.init();
-                    const canvases = contentArea.querySelectorAll('canvas');
-                    canvases.forEach(canvas => {
-                         if (Chart.getChart(canvas)) {
-                            activeCharts.push(Chart.getChart(canvas));
-                         }
-                    });
+                    const newChart = initFn();
+                     if (newChart) {
+                        activeCharts.push(newChart);
+                     }
                 }, 50);
             }
 
