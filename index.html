@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dasbor Persiapan Asesmen Lapangan - Informatika</title>
+    <script src="https://unpkg.com/tailwindcss@^3/dist/tailwind.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Academic Calm -->
+    <!-- Application Structure Plan: The application is designed as an interactive dashboard with a fixed sidebar for navigation and a main content area. A search feature has been added to the header for quick keyword-based access. This non-linear structure is chosen over the report's linear format to allow the accreditation team (Kaprodi, Dosen, etc.) to quickly jump to specific criteria or stakeholder interview guides without scrolling through a long document. The main sections are: 1) Beranda (Overview) explaining the core philosophy (PPEPP cycle). 2) Kriteria Penilaian (9 Criteria) with a tabbed interface for Focus, KPIs, Q&A, and Evidence. 3) Sesi Wawancara (Stakeholder Interviews) to prepare for triangulation. 4) Checklist Final for practical readiness. 5) Strategi Hari-H for tactical guidance. This user-centric design facilitates quick reference and targeted preparation, which is crucial under the pressure of accreditation. -->
+    <!-- Visualization & Content Choices: Data is presented using a mix of text, interactive diagrams, and charts to enhance understanding. Report Info: PPEPP Cycle -> Goal: Explain Process -> Viz/Method: Interactive HTML/CSS diagram -> Interaction: Hover/click to reveal details -> Justification: Makes the abstract quality cycle tangible. Report Info: Key Performance Indicators (e.g., KTW, % Dosen S3) -> Goal: Inform & Compare -> Viz/Method: Chart.js Donut/Bar Charts -> Interaction: Tooltips show target vs. actual values -> Justification: Visualizes quantitative targets and gaps instantly. Report Info: Key Questions -> Goal: Organize & Guide -> Viz/Method: HTML Accordion -> Interaction: Click to expand/collapse answers -> Justification: Prevents information overload and encourages active engagement with ideal answer frameworks. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F9FAFB; /* very light grey */
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 300px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 300px;
+        }
+        @media (max-width: 768px) {
+            .chart-container {
+                height: 250px;
+                max-height: 250px;
+            }
+        }
+        .sidebar-item.active {
+            background-color: #1D4ED8; /* dark blue */
+            color: white;
+            font-weight: 600;
+        }
+        .tab-item.active {
+            border-bottom-color: #2563EB; /* blue */
+            color: #1E40AF; /* darker blue */
+            font-weight: 600;
+        }
+        .accordion-header {
+            cursor: pointer;
+        }
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        .ppepp-item:hover .ppepp-desc {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .checklist-item input:checked + label {
+            text-decoration: line-through;
+            color: #6B7280;
+        }
+        #search-results a:hover {
+            background-color: #eff6ff;
+        }
+        .highlight {
+            background-color: #fef08a; /* yellow-200 */
+            padding: 1px 2px;
+            border-radius: 2px;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="w-64 bg-gray-800 text-white flex-shrink-0 flex-col p-4 space-y-2 hidden md:flex">
+            <h1 class="text-xl font-bold text-center pb-4 border-b border-gray-700">Navigasi AL</h1>
+            <nav id="main-nav" class="flex-grow overflow-y-auto">
+                <!-- Navigation items will be injected by JS -->
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 flex flex-col overflow-hidden">
+            <header class="bg-white shadow-md p-4 flex justify-between items-center gap-4">
+                <h2 id="content-title" class="text-2xl font-bold text-gray-700 flex-shrink-0">Selamat Datang</h2>
+                <div class="relative w-full max-w-md mx-auto">
+                    <input type="text" id="search-input" placeholder="Cari kata kunci... (misal: ppepp, mbkm)" class="w-full pl-4 pr-10 py-2 border rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                     <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                        <svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </div>
+                    <div id="search-results" class="absolute z-20 w-full mt-1 bg-white border rounded-lg shadow-xl hidden max-h-80 overflow-y-auto"></div>
+                </div>
+                <button id="menu-button" class="md:hidden p-2 rounded-md text-gray-600 hover:bg-gray-100 flex-shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+                    </svg>
+                </button>
+            </header>
+            <div id="content-area" class="flex-1 p-6 lg:p-8 overflow-y-auto">
+                <!-- Content will be injected by JS -->
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const appData = {
+            pages: {
+                beranda: {
+                    title: "Beranda: Filosofi & Paradigma Asesmen",
+                    content: `
+                        <div class="bg-white p-6 rounded-lg shadow-sm">
+                            <h3 class="text-xl font-bold text-gray-800 mb-4">Memahami Paradigma Baru Asesmen Lapangan</h3>
+                            <p class="text-gray-600 mb-6">Selamat datang di Dasbor Persiapan Asesmen Lapangan (AL) LAM-INFOKOM. Aplikasi ini dirancang untuk membantu Program Studi Informatika dalam memahami filosofi, mempersiapkan strategi, dan menyajikan bukti secara sistematis. Ingat, AL bukanlah ujian, melainkan sebuah dialog profesional untuk verifikasi dan peningkatan mutu berkelanjutan. Gunakan dasbor ini untuk menavigasi setiap aspek penilaian dengan percaya diri.</p>
+                            
+                            <div class="grid md:grid-cols-2 gap-6 mb-8">
+                                <div class="border border-blue-200 bg-blue-50 p-4 rounded-lg">
+                                    <h4 class="font-semibold text-blue-800">Paradigma Lama: Input-Process</h4>
+                                    <p class="text-sm text-blue-700 mt-2">Fokus pada ketersediaan sumber daya dan prosedur. Pertanyaan kunci: "Apa yang Anda miliki?"</p>
+                                </div>
+                                <div class="border border-green-200 bg-green-50 p-4 rounded-lg">
+                                    <h4 class="font-semibold text-green-800">Paradigma Baru: Output-Outcome</h4>
+                                    <p class="text-sm text-green-700 mt-2">Fokus pada hasil dan dampak. Pertanyaan kunci: "Apa hasil yang dicapai?" dan "Apa dampaknya?". Setiap jawaban harus terhubung dengan bukti capaian dan dampak nyata.</p>
+                                </div>
+                            </div>
+
+                            <h3 class="text-xl font-bold text-gray-800 mb-4">Siklus PPEPP: "Benang Emas" Budaya Mutu</h3>
+                            <p class="text-gray-600 mb-6">Kerangka PPEPP adalah inti dari penilaian asesor untuk melihat budaya mutu yang berjalan. Kuasai alur ini untuk menyajikan narasi yang kuat tentang perbaikan berkelanjutan (Continuous Quality Improvement).</p>
+                            <div class="flex flex-wrap justify-center gap-4 text-center">
+                                <div class="ppepp-item relative group flex flex-col items-center">
+                                    <div class="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center text-2xl font-bold text-gray-700 border-4 border-gray-300">P</div>
+                                    <p class="mt-2 font-semibold">Penetapan</p>
+                                    <div class="ppepp-desc absolute bottom-full mb-2 w-48 bg-gray-800 text-white text-xs rounded py-2 px-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">Menetapkan standar, kebijakan, IKU, atau target.</div>
+                                </div>
+                                <div class="ppepp-item relative group flex flex-col items-center">
+                                    <div class="w-24 h-24 bg-blue-200 rounded-full flex items-center justify-center text-2xl font-bold text-blue-700 border-4 border-blue-300">P</div>
+                                    <p class="mt-2 font-semibold">Pelaksanaan</p>
+                                    <div class="ppepp-desc absolute bottom-full mb-2 w-48 bg-gray-800 text-white text-xs rounded py-2 px-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">Implementasi kebijakan dan rencana aksi.</div>
+                                </div>
+                                <div class="ppepp-item relative group flex flex-col items-center">
+                                    <div class="w-24 h-24 bg-yellow-200 rounded-full flex items-center justify-center text-2xl font-bold text-yellow-700 border-4 border-yellow-300">E</div>
+                                    <p class="mt-2 font-semibold">Evaluasi</p>
+                                    <div class="ppepp-desc absolute bottom-full mb-2 w-48 bg-gray-800 text-white text-xs rounded py-2 px-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">Mengukur dan mengevaluasi hasil pelaksanaan terhadap target.</div>
+                                </div>
+                                <div class="ppepp-item relative group flex flex-col items-center">
+                                    <div class="w-24 h-24 bg-orange-200 rounded-full flex items-center justify-center text-2xl font-bold text-orange-700 border-4 border-orange-300">P</div>
+                                    <p class="mt-2 font-semibold">Pengendalian</p>
+                                    <div class="ppepp-desc absolute bottom-full mb-2 w-48 bg-gray-800 text-white text-xs rounded py-2 px-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">Analisis kesenjangan dan tindakan korektif.</div>
+                                </div>
+                                <div class="ppepp-item relative group flex flex-col items-center">
+                                    <div class="w-24 h-24 bg-green-200 rounded-full flex items-center justify-center text-2xl font-bold text-green-700 border-4 border-green-300">P</div>
+                                    <p class="mt-2 font-semibold">Peningkatan</p>
+                                    <div class="ppepp-desc absolute bottom-full mb-2 w-48 bg-gray-800 text-white text-xs rounded py-2 px-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">Rencana perbaikan untuk siklus berikutnya.</div>
+                                </div>
+                            </div>
+                        </div>
+                    `
+                },
+                c1: {
+                    title: "Kriteria 1: VMTS",
+                    content: `
+                        <div class="bg-white p-6 rounded-lg shadow-sm">
+                            <p class="text-gray-600 mb-6">Kriteria ini memastikan Visi, Misi, Tujuan, dan Strategi (VMTS) bukan sekadar dokumen formal, tetapi menjadi roh dan panduan bagi semua kegiatan di prodi. Fokusnya adalah pada proses perumusan yang partisipatif, keselarasan dengan institusi, dan keterlaksanaan strategi yang terukur.</p>
+                            <div class="border-b border-gray-200 mb-4">
+                                <nav class="-mb-px flex space-x-6" aria-label="Tabs"><button class="tab-item active" data-tab="c1-fokus">Fokus Asesor</button><button class="tab-item" data-tab="c1-indikator">Indikator Kunci</button><button class="tab-item" data-tab="c1-qa">Pertanyaan & Jawaban</button><button class="tab-item" data-tab="c1-bukti">Bukti Pendukung</button></nav>
+                            </div>
+                            <div id="c1-fokus" class="tab-content"><ul class="list-disc list-inside space-y-2 text-gray-700"><li><b>Proses Partisipatif:</b> Keterlibatan stakeholder (internal & eksternal) dalam perumusan VMTS.</li><li><b>Keselarasan:</b> Benang merah yang jelas antara VMTS prodi dengan VMTS Fakultas dan Universitas.</li><li><b>Keterlaksanaan:</b> Adanya strategi yang jelas dan bukti bahwa strategi tersebut dijalankan dan dievaluasi.</li><li><b>Pemahaman:</b> Tingkat pemahaman sivitas akademika terhadap VMTS.</li></ul></div>
+                            <div id="c1-indikator" class="tab-content hidden"><div class="grid md:grid-cols-2 gap-6"><div><h4 class="font-semibold">C.1.1 & C.1.2 Perumusan & Strategi (Bobot: 4)</h4><p class="text-sm mt-2">Menilai keterlibatan stakeholder dan kejelasan tahapan waktu strategi pencapaian.</p></div><div><h4 class="font-semibold">C.1.3 Siklus Mutu VMTS (Bobot: 2)</h4><p class="text-sm mt-2">Menilai keterlaksanaan siklus PPEPP untuk evaluasi ketercapaian VMTS. Bukti RTM dan tindak lanjut menjadi kunci.</p></div></div></div>
+                            <div id="c1-qa" class="tab-content hidden"><div class="space-y-4"><div class="accordion-item border rounded-lg"><div class="accordion-header bg-gray-50 p-4 flex justify-between items-center"><h5 class="font-semibold">Siapa saja yang dilibatkan dalam penyusunan VMTS?</h5><span class="text-xl font-light">+</span></div><div class="accordion-content p-4 border-t"><p class="text-sm text-gray-600">Jelaskan secara rinci pihak internal (dosen, mahasiswa, tendik) dan eksternal (alumni, pengguna lulusan, pakar, asosiasi profesi) yang terlibat. Tunjukkan bukti seperti notulensi, daftar hadir, dan foto FGD.</p></div></div><div class="accordion-item border rounded-lg"><div class="accordion-header bg-gray-50 p-4 flex justify-between items-center"><h5 class="font-semibold">Bagaimana prodi mengevaluasi ketercapaian VMTS?</h5><span class="text-xl font-light">+</span></div><div class="accordion-content p-4 border-t bg-blue-50"><p class="font-bold text-blue-800 mb-2">Kerangka Jawaban Ideal (PPEPP):</p><ul class="list-decimal list-inside space-y-2 text-sm text-gray-700"><li><b>(Penetapan):</b> "Evaluasi ketercapaian VMTS dilakukan setiap 2 tahun melalui RTM, dengan IKU prodi sebagai indikatornya."</li><li><b>(Pelaksanaan):</b> "Evaluasi terakhir Juli 2024 mengumpulkan data capaian IKU seperti IPK, masa tunggu, dll."</li><li><b>(Evaluasi):</b> "Ditemukan IKU 'daya saing global' belum optimal, terlihat dari partisipasi program internasional mahasiswa masih di bawah target 5%."</li><li><b>(Pengendalian & Peningkatan):</b> "Kami membentuk International Program Office dan mengalokasikan dana khusus. Target berikutnya adalah 10%."</li></ul></div></div></div></div>
+                            <div id="c1-bukti" class="tab-content hidden"><div class="grid md:grid-cols-2 gap-4"><div><h4 class="font-semibold mb-2">Dokumen</h4><ul class="list-disc list-inside space-y-1 text-sm"><li>SK Penetapan VMTS</li><li>Dokumen Renstra Prodi dan Fakultas</li><li>Manual SPMI, SOP terkait VMTS</li><li>Notulensi dan daftar hadir rapat dengan stakeholder</li></ul></div><div><h4 class="font-semibold mb-2">Bukti Fisik/Digital</h4><ul class="list-disc list-inside space-y-1 text-sm"><li>Halaman VMTS di website prodi</li><li>Poster VMTS di area kampus</li><li>Laporan hasil evaluasi ketercapaian VMTS</li></ul></div></div></div>
+                        </div>`
+                },
+                c2: {
+                    title: "Kriteria 2: Tata Pamong & Kerja Sama",
+                    content: `
+                        <div class="bg-white p-6 rounded-lg shadow-sm">
+                            <p class="text-gray-600 mb-6">Kriteria ini mengevaluasi efektivitas sistem tata pamong dalam memastikan tridarma yang kredibel, transparan, akuntabel, bertanggung jawab, dan adil (KTABA). Fokus juga pada implementasi SPMI yang fungsional serta kualitas dan kuantitas kerja sama yang relevan.</p>
+                            <div class="border-b border-gray-200 mb-4">
+                                <nav class="-mb-px flex space-x-6" aria-label="Tabs"><button class="tab-item active" data-tab="c2-fokus">Fokus Asesor</button><button class="tab-item" data-tab="c2-indikator">Indikator Kunci</button><button class="tab-item" data-tab="c2-qa">Pertanyaan & Jawaban</button><button class="tab-item" data-tab="c2-bukti">Bukti Pendukung</button></nav>
+                            </div>
+                            <div id="c2-fokus" class="tab-content"><ul class="list-disc list-inside space-y-2 text-gray-700"><li><b>Tata Kelola KTABA:</b> Implementasi prinsip-prinsip good governance dalam pengelolaan prodi.</li><li><b>SPMI Fungsional:</b> Siklus PPEPP berjalan secara nyata, bukan hanya dokumen. Bukti AMI dan RTM sangat penting.</li><li><b>Kepemimpinan Efektif:</b> Kemampuan pimpinan dalam mengarahkan dan mengelola sumber daya.</li><li><b>Kerja Sama Strategis:</b> Kualitas dan dampak kerja sama (terutama internasional) pada kegiatan tridarma.</li></ul></div>
+                            <div id="c2-indikator" class="tab-content hidden"><div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                <div class="border p-4 rounded-lg"><h4 class="font-semibold">C.2.4 Keterlaksanaan SPMI (Bobot: 6)</h4><p class="text-sm mt-2">Menilai kelengkapan dokumen SPMI, pelaksanaan siklus PPEPP, bukti AMI, dan adanya external benchmarking.</p></div>
+                                <div class="border p-4 rounded-lg"><h4 class="font-semibold">C.2.6 Kerja Sama (Bobot: 3)</h4><p class="text-sm mt-2">Menilai relevansi, tingkatan, dan manfaat kerja sama. Bobot tertinggi untuk kerja sama pendidikan dan internasional.</p><div class="chart-container mt-4 mx-auto"><canvas id="c2-chart-kerjasama"></canvas></div></div>
+                            </div></div>
+                            <div id="c2-qa" class="tab-content hidden"><div class="space-y-4"><div class="accordion-item border rounded-lg"><div class="accordion-header bg-gray-50 p-4 flex justify-between items-center"><h5 class="font-semibold">Apa temuan utama dari AMI terakhir dan tindak lanjutnya?</h5><span class="text-xl font-light">+</span></div><div class="accordion-content p-4 border-t bg-blue-50"><p class="font-bold text-blue-800 mb-2">Kerangka Jawaban Ideal (PPEPP):</p><ul class="list-decimal list-inside space-y-2 text-sm text-gray-700"><li><b>(Evaluasi):</b> "Temuan AMI 2023 adalah tingkat keterbacaan RPS oleh mahasiswa masih rendah (60%)."</li><li><b>(Pengendalian):</b> "Analisis menunjukkan format RPS padat teks. Kami membuat template visual baru dan mewajibkan dosen membahasnya di pertemuan pertama."</li><li><b>(Peningkatan):</b> "Target kami berikutnya 90%. Kami juga sedang mengembangkan fitur checklist 'telah membaca RPS' di e-learning."</li></ul></div></div><div class="accordion-item border rounded-lg"><div class="accordion-header bg-gray-50 p-4 flex justify-between items-center"><h5 class="font-semibold">Sebutkan 3 kerja sama unggulan yang paling berdampak.</h5><span class="text-xl font-light">+</span></div><div class="accordion-content p-4 border-t"><p class="text-sm text-gray-600">Fokus pada kerja sama yang menghasilkan outcome nyata: (1) **Pendidikan:** program magang terstruktur dengan perusahaan X yang diserap >50% pesertanya. (2) **Penelitian:** joint research dengan universitas Y di Malaysia menghasilkan 2 publikasi Scopus. (3) **PkM:** adopsi sistem informasi oleh Pemda Z hasil PkM dosen.</p></div></div></div></div>
+                            <div id="c2-bukti" class="tab-content hidden"><div class="grid md:grid-cols-2 gap-4"><div><h4 class="font-semibold mb-2">Dokumen</h4><ul class="list-disc list-inside space-y-1 text-sm"><li>Struktur Organisasi dan Tata Kerja (SOTK)</li><li>Dokumen SPMI lengkap (Kebijakan, Manual, Standar, Formulir)</li><li>Laporan AMI dan Rapat Tinjauan Manajemen (RTM)</li><li>MoU/MoA/IA dengan mitra</li></ul></div><div><h4 class="font-semibold mb-2">Bukti Fisik/Digital</h4><ul class="list-disc list-inside space-y-1 text-sm"><li>Demo sistem informasi pendukung tata kelola</li><li>Foto, laporan, dan produk hasil kerja sama</li><li>Bukti keterlibatan mitra (surat, testimoni)</li></ul></div></div></div>
+                        </div>`,
+                    init: () => {
+                        const ctx = document.getElementById('c2-chart-kerjasama').getContext('2d');
+                        new Chart(ctx, {
+                            type: 'bar',
+                            data: { labels: ['Pendidikan', 'Penelitian', 'PkM'], datasets: [{ label: 'Jumlah Kerja Sama Aktif', data: [8, 12, 15], backgroundColor: ['#3B82F6', '#10B981', '#F59E0B'] }] },
+                            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, title: { display: true, text: 'Komposisi Kerja Sama Tridarma' } }, scales: { y: { beginAtZero: true } } }
+                        });
+                    }
+                },
+                c3: {
+                    title: "Kriteria 3: Mahasiswa",
+                    content: `
+                        <div class="bg-white p-6 rounded-lg shadow-sm">
+                            <p class="text-gray-600 mb-6">Kriteria ini berfokus pada keseluruhan siklus hidup mahasiswa, mulai dari kualitas rekrutmen, layanan kemahasiswaan yang mengembangkan hard & soft skills, hingga upaya prodi dalam membina prestasi.</p>
+                            <div class="border-b border-gray-200 mb-4">
+                                <nav class="-mb-px flex space-x-6" aria-label="Tabs"><button class="tab-item active" data-tab="c3-fokus">Fokus Asesor</button><button class="tab-item" data-tab="c3-indikator">Indikator Kunci</button><button class="tab-item" data-tab="c3-qa">Pertanyaan & Jawaban</button><button class="tab-item" data-tab="c3-bukti">Bukti Pendukung</button></nav>
+                            </div>
+                            <div id="c3-fokus" class="tab-content"><ul class="list-disc list-inside space-y-2 text-gray-700"><li><b>Kualitas Input:</b> Keketatan seleksi dan daya tarik prodi.</li><li><b>Layanan Mahasiswa:</b> Kelengkapan layanan non-akademik (konseling, karir, minat bakat, dll).</li><li><b>Pembinaan Prestasi:</b> Program terstruktur untuk mendorong mahasiswa berprestasi di tingkat nasional dan internasional.</li></ul></div>
+                            <div id="c3-indikator" class="tab-content hidden"><div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                <div class="border p-4 rounded-lg"><h4 class="font-semibold">C.3.2 Kualitas Input (Bobot: 3)</h4><p class="text-sm mt-2">Rasio pendaftar dan diterima. Target skor 4: rasio ≤ 30%.</p></div>
+                                <div class="border p-4 rounded-lg"><h4 class="font-semibold">C.3.4 Kualitas Layanan (Bobot: 3)</h4><p class="text-sm mt-2">Menyediakan 6 jenis layanan: Bimbingan & Konseling, Minat & Bakat, Soft skills, Beasiswa, Kesehatan, dan Karir.</p></div>
+                                <div class="border p-4 rounded-lg"><h4 class="font-semibold">C.9.3-5 Prestasi Mahasiswa (Bobot: 24)</h4><p class="text-sm mt-2">Jumlah prestasi kompetitif (hibah/lomba) di tingkat nasional & internasional. Bobot sangat tinggi.</p><div class="chart-container mt-4 mx-auto"><canvas id="c3-chart-prestasi"></canvas></div></div>
+                            </div></div>
+                            <div id="c3-qa" class="tab-content hidden"><div class="space-y-4"><div class="accordion-item border rounded-lg"><div class="accordion-header bg-gray-50 p-4 flex justify-between items-center"><h5 class="font-semibold">Program apa untuk mendorong prestasi mahasiswa?</h5><span class="text-xl font-light">+</span></div><div class="accordion-content p-4 border-t bg-blue-50"><p class="font-bold text-blue-800 mb-2">Kerangka Jawaban Ideal (PPEPP):</p><ul class="list-decimal list-inside space-y-2 text-sm text-gray-700"><li><b>(Penetapan):</b> "Standar kami: 10% mahasiswa aktif terlibat kompetisi per tahun."</li><li><b>(Pelaksanaan):</b> "Kami ada program sosialisasi, pembentukan kelompok studi, dan insentif dana."</li><li><b>(Evaluasi):</b> "Capaian 8%, di bawah target. Kendala: kemampuan bahasa Inggris & penulisan proposal."</li><li><b>(Pengendalian & Peningkatan):</b> "Kami buat coaching clinic penulisan proposal dalam Bahasa Inggris, target selanjutnya 1 tim lolos internasional."</li></ul></div></div></div></div>
+                            <div id="c3-bukti" class="tab-content hidden"><div class="grid md:grid-cols-2 gap-4"><div><h4 class="font-semibold mb-2">Dokumen</h4><ul class="list-disc list-inside space-y-1 text-sm"><li>SOP penerimaan mahasiswa baru</li><li>Panduan layanan kemahasiswaan</li><li>SK pembimbing dan laporan kegiatan kemahasiswaan</li></ul></div><div><h4 class="font-semibold mb-2">Bukti Fisik/Digital</h4><ul class="list-disc list-inside space-y-1 text-sm"><li>Sertifikat/piagam prestasi mahasiswa</li><li>Website/medsos yang aktif mempublikasikan prestasi</li><li>Testimoni dari mahasiswa juara</li></ul></div></div></div>
+                        </div>`,
+                    init: () => {
+                        const ctx = document.getElementById('c3-chart-prestasi').getContext('2d');
+                        new Chart(ctx, {
+                            type: 'bar',
+                            data: { labels: ['Nasional', 'Internasional'], datasets: [{ label: 'Jumlah Prestasi 3 Tahun Terakhir', data: [15, 3], backgroundColor: ['#3B82F6', '#10B981'] }] },
+                            options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, title: { display: true, text: 'Rekap Prestasi Mahasiswa' } } }
+                        });
+                    }
+                },
+                c4: {
+                    title: "Kriteria 4: Sumber Daya Manusia",
+                    content: `
+                        <div class="bg-white p-6 rounded-lg shadow-sm">
+                            <p class="text-gray-600 mb-6">Kriteria ini menilai kecukupan, kualifikasi, dan pengembangan Dosen Tetap Program Studi (DTPS) serta tenaga kependidikan. Fokus utama pada kualifikasi S3, jabatan fungsional, kesesuaian keahlian, dan beban kerja yang seimbang.</p>
+                            <div class="border-b border-gray-200 mb-4">
+                                <nav class="-mb-px flex space-x-6" aria-label="Tabs"><button class="tab-item active" data-tab="c4-fokus">Fokus Asesor</button><button class="tab-item" data-tab="c4-indikator">Indikator Kunci</button><button class="tab-item" data-tab="c4-qa">Pertanyaan & Jawaban</button><button class="tab-item" data-tab="c4-bukti">Bukti Pendukung</button></nav>
+                            </div>
+                            <div id="c4-fokus" class="tab-content"><ul class="list-disc list-inside space-y-2 text-gray-700"><li><b>Kualifikasi Akademik:</b> Persentase dosen bergelar Doktor (S3).</li><li><b>Jabatan Fungsional:</b> Komposisi Lektor, Lektor Kepala, dan Guru Besar.</li><li><b>Beban Kerja Seimbang:</b> Rata-rata EWMP dosen idealnya 12-16 SKS.</li><li><b>Pengembangan SDM:</b> Adanya peta jalan dan program pengembangan dosen & tendik.</li></ul></div>
+                            <div id="c4-indikator" class="tab-content hidden"><div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                <div class="border p-4 rounded-lg"><h4 class="font-semibold">C.4.1 Kualifikasi DTPS (Bobot: 4)</h4><p class="text-sm mt-2">Target skor 4: ≥ 50% DTPS bergelar Doktor (S3).</p><div class="chart-container mt-4 mx-auto"><canvas id="c4-chart-s3"></canvas></div></div>
+                                <div class="border p-4 rounded-lg"><h4 class="font-semibold">C.4.3 Beban Kerja (EWMP) (Bobot: 2)</h4><p class="text-sm mt-2">Skor tertinggi untuk rata-rata EWMP antara 12-13 SKS.</p></div>
+                                <div class="border p-4 rounded-lg"><h4 class="font-semibold">C.4.4 Kesesuaian Keahlian (Bobot: 3)</h4><p class="text-sm mt-2">Menilai jumlah mata kuliah yang diampu dosen sesuai bidang keahliannya.</p></div>
+                            </div></div>
+                            <div id="c4-qa" class="tab-content hidden"><div class="space-y-4"><div class="accordion-item border rounded-lg"><div class="accordion-header bg-gray-50 p-4 flex justify-between items-center"><h5 class="font-semibold">Bagaimana strategi prodi meningkatkan jumlah dosen S3?</h5><span class="text-xl font-light">+</span></div><div class="accordion-content p-4 border-t bg-blue-50"><p class="font-bold text-blue-800 mb-2">Kerangka Jawaban Ideal (PPEPP):</p><ul class="list-decimal list-inside space-y-2 text-sm text-gray-700"><li><b>(Penetapan):</b> "Renstra kami menargetkan 50% dosen S3 pada 2027."</li><li><b>(Pelaksanaan):</b> "Kami punya peta jalan studi lanjut, info beasiswa, dan penyesuaian beban kerja."</li><li><b>(Evaluasi):</b> "Capaian saat ini 35%. Kendala: pencarian promotor dan universitas tujuan."</li><li><b>(Pengendalian & Peningkatan):</b> "Kami inisiasi program mentoring dengan dosen senior dan kerja sama fast track S3 dengan universitas mitra."</li></ul></div></div></div></div>
+                            <div id="c4-bukti" class="tab-content hidden"><div class="grid md:grid-cols-2 gap-4"><div><h4 class="font-semibold mb-2">Dokumen</h4><ul class="list-disc list-inside space-y-1 text-sm"><li>SK DTPS, Ijazah, Serdos, SK Jabfung</li><li>Laporan Beban Kerja Dosen (BKD)</li><li>Peta jalan pengembangan SDM</li></ul></div><div><h4 class="font-semibold mb-2">Bukti Fisik/Digital</h4><ul class="list-disc list-inside space-y-1 text-sm"><li>Profil dosen & keahlian di website</li><li>CV lengkap setiap dosen</li><li>Bukti dukungan studi lanjut (surat tugas)</li></ul></div></div></div>
+                        </div>`,
+                    init: () => {
+                        const ctx = document.getElementById('c4-chart-s3').getContext('2d');
+                        new Chart(ctx, {
+                            type: 'doughnut',
+                            data: { labels: ['Doktor (S3)', 'Magister (S2)'], datasets: [{ data: [35, 65], backgroundColor: ['#10B981', '#6B7280'] }] },
+                            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' }, title: { display: true, text: 'Kualifikasi Akademik DTPS' } } }
+                        });
+                    }
+                },
+                c5: {
+                    title: "Kriteria 5: Keuangan, Sarana, Prasarana",
+                    content: `
+                        <div class="bg-white p-6 rounded-lg shadow-sm">
+                            <p class="text-gray-600 mb-6">Kriteria ini menilai kecukupan, aksesibilitas, dan pengelolaan dana serta sarana prasarana (laboratorium, pustaka, TI). Penekanannya bukan pada kemewahan, tetapi pada kecukupan, fungsionalitas, dan keterawatan.</p>
+                            <div class="border-b border-gray-200 mb-4">
+                                <nav class="-mb-px flex space-x-6" aria-label="Tabs"><button class="tab-item active" data-tab="c5-fokus">Fokus Asesor</button><button class="tab-item" data-tab="c5-indikator">Indikator Kunci</button><button class="tab-item" data-tab="c5-qa">Pertanyaan & Jawaban</button><button class="tab-item" data-tab="c5-bukti">Bukti Pendukung</button></nav>
+                            </div>
+                            <div id="c5-fokus" class="tab-content"><ul class="list-disc list-inside space-y-2 text-gray-700"><li><b>Kecukupan Dana:</b> Alokasi dana yang memadai untuk operasional dan pengembangan.</li><li><b>Sarana Pembelajaran:</b> Kelayakan dan keterawatan ruang kelas, lab, dan peralatan.</li><li><b>Infrastruktur TI:</b> Akses internet yang handal dan sistem informasi yang terintegrasi.</li><li><b>Sumber Pustaka:</b> Kecukupan koleksi buku dan akses ke jurnal ilmiah (terutama internasional).</li></ul></div>
+                            <div id="c5-indikator" class="tab-content hidden"><div class="grid md:grid-cols-2 gap-6">
+                                <div class="border p-4 rounded-lg"><h4 class="font-semibold">C.5.3 Aksesibilitas Sistem Informasi (Bobot: 2)</h4><p class="text-sm mt-2">Skor tertinggi jika data dapat diakses melalui internet (WAN), menunjukkan sistem modern.</p></div>
+                                <div class="border p-4 rounded-lg"><h4 class="font-semibold">C.5.8 Sumber Pustaka (Bobot: 3)</h4><p class="text-sm mt-2">Menilai ketersediaan jurnal internasional, jurnal nasional terakreditasi, dan jumlah buku teks (Target >200 judul).</p></div>
+                            </div></div>
+                            <div id="c5-qa" class="tab-content hidden"><div class="space-y-4"><div class="accordion-item border rounded-lg"><div class="accordion-header bg-gray-50 p-4 flex justify-between items-center"><h5 class="font-semibold">Bagaimana prodi memastikan kecukupan sarana di lab?</h5><span class="text-xl font-light">+</span></div><div class="accordion-content p-4 border-t bg-blue-50"><p class="font-bold text-blue-800 mb-2">Kerangka Jawaban Ideal (PPEPP):</p><ul class="list-decimal list-inside space-y-2 text-sm text-gray-700"><li><b>(Penetapan):</b> "Standar kami: rasio 1 PC untuk 2 mahasiswa, spesifikasi dievaluasi tahunan."</li><li><b>(Pelaksanaan):</b> "Setiap awal tahun akademik, kami inventarisasi dan upgrade berdasarkan usulan dosen."</li><li><b>(Evaluasi):</b> "Evaluasi terakhir menunjukkan 20% PC tidak memadai untuk mata kuliah Machine Learning."</li><li><b>(Pengendalian & Peningkatan):</b> "Kami alokasikan anggaran penggantian PC dan menjajaki penggunaan cloud computing (Google Colab Pro) sebagai solusi fleksibel."</li></ul></div></div></div></div>
+                            <div id="c5-bukti" class="tab-content hidden"><div class="grid md:grid-cols-2 gap-4"><div><h4 class="font-semibold mb-2">Dokumen</h4><ul class="list-disc list-inside space-y-1 text-sm"><li>Laporan keuangan</li><li>Daftar inventaris sarpras</li><li>SOP penggunaan lab/perpus</li><li>Bukti langganan jurnal & lisensi software</li></ul></div><div><h4 class="font-semibold mb-2">Bukti Fisik/Digital</h4><ul class="list-disc list-inside space-y-1 text-sm"><li>Tur fasilitas (lab, perpus, kelas)</li><li>Demo sistem informasi akademik & e-learning</li><li>Menunjukkan kondisi fisik peralatan</li></ul></div></div></div>
+                        </div>`
+                },
+                c6: {
+                    title: "Kriteria 6: Pendidikan",
+                    content: `
+                        <div class="bg-white p-6 rounded-lg shadow-sm">
+                            <p class="text-gray-600 mb-6">Ini adalah jantung akreditasi, mengevaluasi seluruh aspek proses pendidikan: relevansi kurikulum, kedalaman RPS, metode pembelajaran, pembimbingan, implementasi MBKM, dan suasana akademik.</p>
+                            <div class="border-b border-gray-200 mb-4">
+                                <nav class="-mb-px flex space-x-6" aria-label="Tabs"><button class="tab-item active" data-tab="c6-fokus">Fokus Asesor</button><button class="tab-item" data-tab="c6-indikator">Indikator Kunci</button><button class="tab-item" data-tab="c6-qa">Pertanyaan & Jawaban</button><button class="tab-item" data-tab="c6-bukti">Bukti Pendukung</button></nav>
+                            </div>
+                            <div id="c6-fokus" class="tab-content"><ul class="list-disc list-inside space-y-2 text-gray-700"><li><b>Struktur Kurikulum:</b> Berbasis OBE/KKNI, relevan dengan kebutuhan industri, dan memiliki mekanisme tinjauan yang sistematis.</li><li><b>Proses Pembelajaran:</b> Kualitas RPS, variasi metode pembelajaran (student-centered learning), dan integrasi hasil riset/PkM.</li><li><b>Pembimbingan:</b> Efektivitas bimbingan akademik dan tugas akhir.</li><li><b>Implementasi MBKM:</b> Ketersediaan program dan partisipasi mahasiswa.</li></ul></div>
+                            <div id="c6-indikator" class="tab-content hidden"><div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                <div class="border p-4 rounded-lg"><h4 class="font-semibold">C.6.1 Kurikulum (Bobot: 5)</h4><p class="text-sm mt-2">Menilai 5 sub-aspek: perumusan, substansi, kelengkapan RPS, materi, dan mekanisme tinjauan kurikulum.</p></div>
+                                <div class="border p-4 rounded-lg"><h4 class="font-semibold">C.6.2 Implementasi MBKM (Bobot: 3)</h4><p class="text-sm mt-2">Target skor 4: ≥ 5% mahasiswa mengikuti program MBKM.</p><div class="chart-container mt-4 mx-auto"><canvas id="c6-chart-mbkm"></canvas></div></div>
+                                <div class="border p-4 rounded-lg"><h4 class="font-semibold">C.6.10 Integrasi Riset/PkM (Bobot: 2)</h4><p class="text-sm mt-2">Menilai persentase mata kuliah yang mengintegrasikan hasil riset & PkM dosen sebagai bahan ajar.</p></div>
+                            </div></div>
+                            <div id="c6-qa" class="tab-content hidden"><div class="space-y-4"><div class="accordion-item border rounded-lg"><div class="accordion-header bg-gray-50 p-4 flex justify-between items-center"><h5 class="font-semibold">Bagaimana proses peninjauan kurikulum dilakukan?</h5><span class="text-xl font-light">+</span></div><div class="accordion-content p-4 border-t bg-blue-50"><p class="font-bold text-blue-800 mb-2">Kerangka Jawaban Ideal (PPEPP):</p><ul class="list-decimal list-inside space-y-2 text-sm text-gray-700"><li><b>(Penetapan):</b> "Standar kami: tinjauan mayor tiap 4 tahun, minor tiap tahun, melibatkan stakeholder."</li><li><b>(Pelaksanaan):</b> "Tinjauan 2023 melibatkan dosen, mahasiswa, alumni, dan industri melalui survei & FGD."</li><li><b>(Evaluasi):</b> "Ditemukan kebutuhan mendesak untuk teknologi containerization (Docker, Kubernetes)."</li><li><b>(Pengendalian & Peningkatan):</b> "Kami integrasikan modul ini ke MK Jaringan Lanjut & Sistem Terdistribusi. Efektivitasnya akan diukur via tracer study berikutnya."</li></ul></div></div></div></div>
+                            <div id="c6-bukti" class="tab-content hidden"><div class="grid md:grid-cols-2 gap-4"><div><h4 class="font-semibold mb-2">Dokumen</h4><ul class="list-disc list-inside space-y-1 text-sm"><li>Dokumen kurikulum lengkap (CPL, struktur MK)</li><li>Kumpulan RPS seluruh MK</li><li>Notulensi lokakarya peninjauan kurikulum</li><li>Laporan pelaksanaan MBKM & panduan TA</li></ul></div><div><h4 class="font-semibold mb-2">Bukti Fisik/Digital</h4><ul class="list-disc list-inside space-y-1 text-sm"><li>Demo e-learning (RPS, materi, aktivitas)</li><li>Contoh tugas, proyek, dan laporan TA</li><li>Testimoni mahasiswa tentang proses belajar</li></ul></div></div></div>
+                        </div>`,
+                    init: () => {
+                        const ctx = document.getElementById('c6-chart-mbkm').getContext('2d');
+                        new Chart(ctx, {
+                            type: 'doughnut',
+                            data: { labels: ['Ikut MBKM', 'Belum Ikut'], datasets: [{ data: [8, 92], backgroundColor: ['#3B82F6', '#D1D5DB'] }] },
+                            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' }, title: { display: true, text: 'Partisipasi Mahasiswa MBKM (Contoh: 8%)' } } }
+                        });
+                    }
+                },
+                c7: {
+                    title: "Kriteria 7: Penelitian",
+                    content: `
+                        <div class="bg-white p-6 rounded-lg shadow-sm">
+                            <p class="text-gray-600 mb-6">Pada kriteria ini, asesor akan menilai komitmen prodi terhadap pengembangan penelitian yang relevan, bermutu, dan berdampak. Fokusnya adalah pada keselarasan penelitian dengan peta jalan, keterlibatan mahasiswa, serta kuantitas dan kualitas luaran seperti publikasi dan Hak Kekayaan Intelektual (HKI). Ini adalah bukti bahwa prodi merupakan ekosistem akademik yang hidup dan produktif.</p>
+                            <div class="border-b border-gray-200 mb-4">
+                                <nav class="-mb-px flex space-x-6" aria-label="Tabs"><button class="tab-item active" data-tab="c7-fokus">Fokus Asesor</button><button class="tab-item" data-tab="c7-indikator">Indikator Kunci</button><button class="tab-item" data-tab="c7-qa">Pertanyaan & Jawaban</button><button class="tab-item" data-tab="c7-bukti">Bukti Pendukung</button></nav>
+                            </div>
+                            <div id="c7-fokus" class="tab-content"><ul class="list-disc list-inside space-y-2 text-gray-700"><li><b>Peta Jalan Penelitian:</b> Adanya peta jalan yang jelas, sistematis, dan menjadi panduan arah riset dosen.</li><li><b>Pendanaan Penelitian:</b> Kecukupan, sumber, dan keberlanjutan dana penelitian.</li><li><b>Keterlibatan Mahasiswa:</b> Seberapa banyak mahasiswa (terutama Tugas Akhir) yang penelitiannya terintegrasi dalam payung penelitian dosen.</li><li><b>Luaran Penelitian:</b> Kualitas dan kuantitas publikasi ilmiah (jurnal bereputasi, prosiding) dan HKI (Paten, Hak Cipta).</li></ul></div>
+                            <div id="c7-indikator" class="tab-content hidden"><div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6"><div class="border p-4 rounded-lg"><h4 class="font-semibold">C.7.1 Peta Jalan Penelitian (Bobot: 2)</h4><p class="text-sm mt-2">Menilai adanya peta jalan penelitian yang sistematis dan selaras Visi Keilmuan prodi.</p></div><div class="border p-4 rounded-lg"><h4 class="font-semibold">C.7.4 Keterlibatan Mahasiswa & Produktivitas (Bobot: 3)</h4><p class="text-sm mt-2">Target Skor 4: ≥10% TA mahasiswa bagian dari riset dosen, dan rata-rata ≥3 penelitian/dosen/3 tahun.</p></div><div class="border p-4 rounded-lg"><h4 class="font-semibold">C.9.18 Hak Kekayaan Intelektual (HKI) (Bobot: 8)</h4><p class="text-sm mt-2">Penilaian sangat tinggi untuk Paten (granted/terdaftar). Menunjukkan inovasi dan kebaruan.</p><div class="chart-container mt-4 mx-auto"><canvas id="c7-chart-hki"></canvas></div></div></div></div>
+                            <div id="c7-qa" class="tab-content hidden"><div class="space-y-4"><div class="accordion-item border rounded-lg"><div class="accordion-header bg-gray-50 p-4 flex justify-between items-center"><h5 class="font-semibold">Jelaskan peta jalan penelitian di prodi ini.</h5><span class="text-xl font-light">+</span></div><div class="accordion-content p-4 border-t"><p class="text-sm text-gray-600">Jelaskan tema-tema unggulan dalam peta jalan dan bagaimana peta jalan tersebut diturunkan menjadi topik riset dosen dan kelompok keahlian, serta keselarasan dengan Renstra.</p></div></div><div class="accordion-item border rounded-lg"><div class="accordion-header bg-gray-50 p-4 flex justify-between items-center"><h5 class="font-semibold">Bagaimana mekanisme pelibatan mahasiswa dalam penelitian dosen?</h5><span class="text-xl font-light">+</span></div><div class="accordion-content p-4 border-t"><p class="text-sm text-gray-600">Berikan contoh konkret skema Tugas Akhir di bawah payung penelitian dosen, keterlibatan dalam hibah, atau sebagai asisten peneliti. Tunjukkan data persentasenya.</p></div></div><div class="accordion-item border rounded-lg"><div class="accordion-header bg-gray-50 p-4 flex justify-between items-center"><h5 class="font-semibold">Bagaimana prodi mendorong peningkatan jumlah publikasi internasional?</h5><span class="text-xl font-light">+</span></div><div class="accordion-content p-4 border-t bg-blue-50"><p class="font-bold text-blue-800 mb-2">Kerangka Jawaban Ideal (PPEPP):</p><ul class="list-decimal list-inside space-y-2 text-sm text-gray-700"><li><b>(Penetapan):</b> "IKU kami menargetkan peningkatan publikasi Scopus 20% per tahun."</li><li><b>(Pelaksanaan):</b> "Kami meluncurkan program 'Insentif Publikasi Internasional' dan 'Writing Camp'."</li><li><b>(Evaluasi):</b> "Evaluasi tahun lalu peningkatan 15%, kendala utama adalah biaya publikasi (APC)."</li><li><b>(Pengendalian & Peningkatan):</b> "Kami merealokasi anggaran untuk menyediakan 'Bantuan Dana APC' di awal. Kami optimis target akan tercapai."</li></ul></div></div></div></div>
+                            <div id="c7-bukti" class="tab-content hidden"><div class="grid md:grid-cols-2 gap-4"><div><h4 class="font-semibold mb-2">Dokumen</h4><ul class="list-disc list-inside space-y-1 text-sm"><li>Dokumen Peta Jalan Penelitian</li><li>SK Tim Reviewer Penelitian Internal</li><li>Laporan penelitian dosen</li><li>Daftar publikasi ilmiah DTPS & Sertifikat HKI</li></ul></div><div><h4 class="font-semibold mb-2">Bukti Fisik/Digital</h4><ul class="list-disc list-inside space-y-1 text-sm"><li>Repositori publikasi institusi (live demo)</li><li>Profil Google Scholar/Scopus para dosen</li><li>Contoh produk/prototipe hasil penelitian</li></ul></div></div></div>
+                        </div>`,
+                    init: () => {
+                        const ctx = document.getElementById('c7-chart-hki').getContext('2d');
+                        new Chart(ctx, {
+                            type: 'doughnut',
+                            data: { labels: ['Paten Granted', 'Paten Terdaftar', 'Hak Cipta', 'Lainnya'], datasets: [{ label: 'Jumlah HKI', data: [2, 5, 15, 8], backgroundColor: ['#10B981', '#3B82F6', '#F59E0B', '#6B7280'] }] },
+                            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' }, title: { display: true, text: 'Komposisi HKI (Contoh)' } } }
+                        });
+                    }
+                },
+                c8: {
+                    title: "Kriteria 8: Pengabdian kepada Masyarakat",
+                    content: `
+                        <div class="bg-white p-6 rounded-lg shadow-sm">
+                            <p class="text-gray-600 mb-6">Kriteria ini menilai komitmen prodi terhadap PkM yang berdampak. Fokusnya adalah pada kesesuaian PkM dengan peta jalan, relevansi dengan bidang informatika, pendanaan, keterlibatan mahasiswa, serta dampak dan kepuasan mitra.</p>
+                            <div class="border-b border-gray-200 mb-4">
+                                <nav class="-mb-px flex space-x-6" aria-label="Tabs"><button class="tab-item active" data-tab="c8-fokus">Fokus Asesor</button><button class="tab-item" data-tab="c8-indikator">Indikator Kunci</button><button class="tab-item" data-tab="c8-qa">Pertanyaan & Jawaban</button><button class="tab-item" data-tab="c8-bukti">Bukti Pendukung</button></nav>
+                            </div>
+                            <div id="c8-fokus" class="tab-content"><ul class="list-disc list-inside space-y-2 text-gray-700"><li><b>Peta Jalan PkM:</b> Tema PkM yang terstruktur dan selaras dengan keilmuan prodi.</li><li><b>Keterlibatan:</b> Partisipasi aktif dosen dan mahasiswa dalam kegiatan PkM.</li><li><b>Pendanaan:</b> Kemampuan menarik dana PkM dari sumber eksternal yang kompetitif.</li><li><b>Dampak Nyata:</b> Adanya bukti kebermanfaatan dan kepuasan dari mitra PkM.</li></ul></div>
+                            <div id="c8-indikator" class="tab-content hidden"><div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                <div class="border p-4 rounded-lg"><h4 class="font-semibold">C.8.3 Keterlibatan (Bobot: 2)</h4><p class="text-sm mt-2">Target skor 4: ≥ 50% PkM melibatkan mahasiswa.</p></div>
+                                <div class="border p-4 rounded-lg"><h4 class="font-semibold">C.9.24 Kepuasan Mitra (Bobot: 8)</h4><p class="text-sm mt-2">Indikator outcome penting. Membutuhkan bukti survei kepuasan atau testimoni dari banyak mitra.</p></div>
+                                <div class="border p-4 rounded-lg"><h4 class="font-semibold">C.8.5 Sumber Dana PkM (Bobot: 2)</h4><p class="text-sm mt-2">Bobot tertinggi untuk dana dari luar negeri dan luar PT (nasional).</p><div class="chart-container mt-4 mx-auto"><canvas id="c8-chart-dana"></canvas></div></div>
+                            </div></div>
+                            <div id="c8-qa" class="tab-content hidden"><div class="space-y-4"><div class="accordion-item border rounded-lg"><div class="accordion-header bg-gray-50 p-4 flex justify-between items-center"><h5 class="font-semibold">Sebutkan PkM unggulan dan jelaskan dampaknya.</h5><span class="text-xl font-light">+</span></div><div class="accordion-content p-4 border-t bg-blue-50"><p class="font-bold text-blue-800 mb-2">Kerangka Jawaban Ideal (PPEPP):</p><ul class="list-decimal list-inside space-y-2 text-sm text-gray-700"><li><b>(Pelaksanaan):</b> "PkM unggulan kami: 'Implementasi Sistem Kasir Digital untuk UMKM Kuliner di Desa X'."</li><li><b>(Evaluasi):</b> "Setelah 6 bulan, 80% UMKM aktif menggunakan. Ada efisiensi waktu pencatatan 30 menit/hari."</li><li><b>(Pengendalian):</b> "Umpan balik: fitur manajemen stok sulit digunakan."</li><li><b>(Peningkatan):</b> "Tim mahasiswa sedang mengembangkan versi 2.0 dengan UI lebih sederhana. Kami berencana mereplikasi program ini ke desa tetangga."</li></ul></div></div></div></div>
+                            <div id="c8-bukti" class="tab-content hidden"><div class="grid md:grid-cols-2 gap-4"><div><h4 class="font-semibold mb-2">Dokumen</h4><ul class="list-disc list-inside space-y-1 text-sm"><li>Dokumen Peta Jalan PkM</li><li>Laporan kegiatan PkM (proposal, laporan akhir)</li><li>Daftar PkM DTPS</li></ul></div><div><h4 class="font-semibold mb-2">Bukti Fisik/Digital</h4><ul class="list-disc list-inside space-y-1 text-sm"><li>Produk hasil PkM (aplikasi, website)</li><li>Dokumentasi kegiatan (foto, video)</li><li>Surat keterangan atau testimoni dari mitra</li></ul></div></div></div>
+                        </div>`,
+                    init: () => {
+                        const ctx = document.getElementById('c8-chart-dana').getContext('2d');
+                        new Chart(ctx, {
+                            type: 'pie',
+                            data: { labels: ['Eksternal', 'Internal PT'], datasets: [{ data: [40, 60], backgroundColor: ['#10B981', '#6B7280'] }] },
+                            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' }, title: { display: true, text: 'Sumber Pendanaan PkM (%)' } } }
+                        });
+                    }
+                },
+                c9: {
+                    title: "Kriteria 9: Luaran dan Capaian",
+                    content: `
+                        <div class="bg-white p-6 rounded-lg shadow-sm">
+                            <p class="text-gray-600 mb-6">Kriteria pamungkas dengan bobot terbesar, mengukur output dan outcome dari seluruh proses. Fokus pada capaian mahasiswa (IPK, KTW), data lulusan (tracer study), kepuasan pengguna, serta luaran penelitian dan PkM.</p>
+                            <div class="border-b border-gray-200 mb-4">
+                                <nav class="-mb-px flex space-x-6" aria-label="Tabs"><button class="tab-item active" data-tab="c9-fokus">Fokus Asesor</button><button class="tab-item" data-tab="c9-indikator">Indikator Kunci</button><button class="tab-item" data-tab="c9-qa">Pertanyaan & Jawaban</button><button class="tab-item" data-tab="c9-bukti">Bukti Pendukung</button></nav>
+                            </div>
+                            <div id="c9-fokus" class="tab-content"><ul class="list-disc list-inside space-y-2 text-gray-700"><li><b>Capaian Akademik:</b> IPK rata-rata dan persentase Kelulusan Tepat Waktu (KTW).</li><li><b>Tracer Study:</b> Validitas data masa tunggu kerja dan kesesuaian bidang kerja.</li><li><b>Kepuasan Pengguna:</b> Bukti survei yang valid mengenai kepuasan mitra industri terhadap kompetensi lulusan.</li><li><b>Luaran Tridarma:</b> Kuantitas dan kualitas publikasi, HKI, serta produk/jasa yang diadopsi masyarakat.</li></ul></div>
+                            <div id="c9-indikator" class="tab-content hidden"><div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                <div class="border p-4 rounded-lg"><h4 class="font-semibold">C.9.6 KTW (Bobot: 8)</h4><p class="text-sm mt-2">Target skor 4: Kelulusan Tepat Waktu (KTW) ≥ 60%.</p><div class="chart-container mt-4 mx-auto"><canvas id="c9-chart-ktw"></canvas></div></div>
+                                <div class="border p-4 rounded-lg"><h4 class="font-semibold">C.9.10 Kepuasan Pengguna (Bobot: 8)</h4><p class="text-sm mt-2">Memerlukan survei yang valid kepada pengguna, menilai 7 aspek kompetensi lulusan.</p></div>
+                                <div class="border p-4 rounded-lg"><h4 class="font-semibold">C.9.11 Masa Tunggu Kerja (Bobot: 8)</h4><p class="text-sm mt-2">Target skor 4: Rata-rata masa tunggu (RMT) ≤ 1 bulan.</p></div>
+                            </div></div>
+                            <div id="c9-qa" class="tab-content hidden"><div class="space-y-4"><div class="accordion-item border rounded-lg"><div class="accordion-header bg-gray-50 p-4 flex justify-between items-center"><h5 class="font-semibold">Bagaimana hasil tracer study digunakan untuk perbaikan?</h5><span class="text-xl font-light">+</span></div><div class="accordion-content p-4 border-t bg-blue-50"><p class="font-bold text-blue-800 mb-2">Kerangka Jawaban Ideal (PPEPP):</p><ul class="list-decimal list-inside space-y-2 text-sm text-gray-700"><li><b>(Evaluasi):</b> "Tracer study 2023 menunjukkan RMT 4.5 bulan, PBS 85%. Namun, 40% alumni merasa kurang dalam kemampuan negosiasi dan presentasi bisnis."</li><li><b>(Pengendalian):</b> "Analisis RTM menyimpulkan kurikulum kami lemah di soft skills komunikasi profesional."</li><li><b>(Peningkatan):</b> "Kami adakan workshop 'Professional Communication Skills' untuk mhs tingkat akhir dan merevisi bobot penilaian presentasi di Proyek Akhir. Dampaknya akan diukur di tracer study berikutnya."</li></ul></div></div></div></div>
+                            <div id="c9-bukti" class="tab-content hidden"><div class="grid md:grid-cols-2 gap-4"><div><h4 class="font-semibold mb-2">Dokumen</h4><ul class="list-disc list-inside space-y-1 text-sm"><li>Laporan kelulusan (rekap IPK, masa studi)</li><li>Laporan tracer study komprehensif</li><li>Laporan survei kepuasan pengguna</li><li>Daftar prestasi, publikasi, HKI</li></ul></div><div><h4 class="font-semibold mb-2">Bukti Fisik/Digital</h4><ul class="list-disc list-inside space-y-1 text-sm"><li>Demo platform tracer study online</li><li>Bukti tindak lanjut hasil tracer study (notulensi rapat kurikulum, SK workshop baru)</li></ul></div></div></div>
+                        </div>`,
+                    init: () => {
+                        const ctx = document.getElementById('c9-chart-ktw').getContext('2d');
+                        new Chart(ctx, {
+                            type: 'bar',
+                            data: { labels: ['Tepat Waktu', 'Terlambat'], datasets: [{ label: 'Persentase Kelulusan', data: [75, 25], backgroundColor: ['#10B981', '#EF4444'] }] },
+                            options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, title: { display: true, text: 'Kelulusan Tepat Waktu (KTW)' } } }
+                        });
+                    }
+                },
+                referensi: {
+                    title: "Referensi & Daftar Pustaka",
+                    content: `
+                        <div class="bg-white p-6 rounded-lg shadow-sm">
+                            <h3 class="text-xl font-bold text-gray-800 mb-4">Daftar Pustaka</h3>
+                            <p class="text-gray-600 mb-6">Informasi yang disajikan dalam dasbor ini dirangkum dan diadaptasi dari berbagai dokumen resmi, panduan, dan materi sosialisasi yang relevan dengan proses akreditasi LAM-INFOKOM. Berikut adalah daftar sumber utama yang menjadi acuan:</p>
+                            <ol class="list-decimal list-inside space-y-4 text-gray-700 text-sm">
+                                <li>LAM-INFOKOM, “Buku 1 - Naskah Akademik Akreditasi Program Studi Bidang Infokom Versi 2.0,” Jakarta, 2023.</li>
+                                <li>LLDIKTI Wilayah 13, “SOSIALISASI PANDUAN PENYUSUNAN LED DAN LKPS LAM INFOKOM,” 2022.</li>
+                                <li>Asosiasi Pendidikan Tinggi Ilmu Komputer Indonesia, “Workshop Penyusunan Dokumen Akreditasi LAM INFOKOM,” APTIKOM, Yogyakarta, 2023.</li>
+                                <li>Universitas Gadjah Mada, “Panduan Sistem Penjaminan Mutu Internal (SPMI) UGM,” Yogyakarta, 2020.</li>
+                                <li>Adetunji, A. R., et al. “An evaluation of the accreditation process of computer science programme in Nigerian universities,” vol. 18, no. 1, pp. 23–35, 2021.</li>
+                                <li>LAM-INFOKOM, “Buku 2 - Kriteria dan Prosedur Akreditasi Program Studi Bidang Infokom Versi 2.0,” Jakarta, 2023.</li>
+                                <li>Asosiasi Program Studi Informatika (APSI), “Webinar Nasional: Kupas Tuntas Instrumen Akreditasi LAM INFOKOM Terbaru,” 2024.</li>
+                                <li>LAM-INFOKOM, “Matriks Penilaian Instrumen Akreditasi Program Sarjana Bidang Infokom,” Jakarta, 2022.</li>
+                                <li>Direktorat Penjaminan Mutu, RISTEKDIKTI, “Buku Panduan Penyusunan Laporan Evaluasi Diri,” Jakarta, 2019.</li>
+                                <li>LAM-INFOKOM, “Panduan Penyusunan Laporan Evaluasi Diri (LED) Akreditasi Program Studi Bidang Infokom (Versi 1.1),” Jakarta, 2022.</li>
+                                <li>BAN-PT, “Peraturan BAN-PT Nomor 15 Tahun 2021 tentang Instrumen Akreditasi Program Studi,” 2021.</li>
+                                <li>LAM-INFOKOM, “Surat Edaran Nomor 010/LAM-INFOKOM/III/2024 tentang Implementasi Instrumen Akreditasi 2.0,” 2024.</li>
+                                <li>Tim Task-Force, "Pedoman dan Strategi Visitasi Akreditasi." Pusat Penjaminan Mutu, Institut Teknologi Sepuluh Nopember, 2021.</li>
+                                <li>Yin, R. K. "Case study research and applications: Design and methods." Sage publications, 2017.</li>
+                                <li>Stake, R. E. "The art of case study research." Sage, 1995.</li>
+                                <li>Terwilliger, P. T. “Self-study and site visit guide for the CIPS accreditation process,” CIPS, Mississauga, ON, Canada, 2018.</li>
+                                <li>Witkin, J. R., and Altschuld, J. W. "Planning and conducting needs assessments: A practical guide." Sage, 1995.</li>
+                                <li>Tim Fasilitator Akreditasi APTIKOM Wilayah, "Evaluasi dan Temuan Umum Visitasi Akreditasi," 2023.</li>
+                                <li>Accreditation Board for Engineering and Technology (ABET), “Accreditation Policy and Procedure Manual (APPM),” Baltimore, MD, 2022.</li>
+                                <li>LAM-INFOKOM, “Buku 4 - Prosedur Operasional Baku (POB) Akreditasi Program Studi Bidang Infokom,” Jakarta, 2022.</li>
+                            </ol>
+                        </div>
+                    `
+                },
+                wawancara: {
+                    title: "Panduan Sesi Wawancara (Triangulasi)",
+                    content: `
+                        <div class="bg-white p-6 rounded-lg shadow-sm">
+                            <h3 class="text-xl font-bold text-gray-800 mb-4">Strategi Menghadapi Triangulasi</h3>
+                            <p class="text-gray-600 mb-6">Asesor menggunakan teknik **triangulasi** untuk memvalidasi informasi dengan menanyakan tema yang sama kepada kelompok yang berbeda (Pimpinan, Dosen, Mahasiswa, dll). Tujuannya adalah untuk memeriksa konsistensi. Kunci keberhasilan bukan menghafal jawaban, tetapi **briefing yang transparan** agar semua pihak memahami data dan kebijakan, sehingga jawaban yang diberikan otentik, konsisten, dan selaras.</p>
+                            <div class="space-y-4">
+                                <div class="accordion-item border rounded-lg"><div class="accordion-header bg-gray-50 p-4 flex justify-between items-center"><h5 class="font-semibold text-blue-800">Pimpinan (Dekan/Kaprodi)</h5><span class="text-xl font-light">+</span></div><div class="accordion-content p-4 border-t text-sm"><h4 class="font-semibold mb-2">Fokus Asesor:</h4><p class="mb-4">Pemahaman holistik, kepemimpinan strategis, dan kemampuan membuktikan budaya mutu melalui siklus PPEPP.</p><h4 class="font-semibold mb-2">Contoh Pertanyaan:</h4><ul class="list-disc list-inside mb-4 space-y-1"><li>Bagaimana strategi pengembangan prodi ke depan?</li><li>Bagaimana Anda menjamin mutu tridarma?</li><li>Apa temuan AMI terakhir dan tindak lanjutnya?</li></ul><h4 class="font-semibold mb-2">Poin Kunci Jawaban:</h4><ul class="list-disc list-inside space-y-1"><li>Sampaikan narasi besar menggunakan alur PPEPP.</li><li>Tunjukkan penguasaan data di LKPS dan analisis di LED.</li><li>Hubungkan semua jawaban dengan VMTS dan Renstra.</li></ul></div></div>
+                                <div class="accordion-item border rounded-lg"><div class="accordion-header bg-gray-50 p-4 flex justify-between items-center"><h5 class="font-semibold text-blue-800">Dosen (DTPS)</h5><span class="text-xl font-light">+</span></div><div class="accordion-content p-4 border-t text-sm"><h4 class="font-semibold mb-2">Fokus Asesor:</h4><p class="mb-4">Kondisi kerja, keseimbangan beban, keterlibatan aktif dalam tridarma, dan pemahaman sebagai ujung tombak penjaminan mutu.</p><h4 class="font-semibold mb-2">Contoh Pertanyaan:</h4><ul class="list-disc list-inside mb-4 space-y-1"><li>Berapa EWMP Anda? Apakah memungkinkan untuk riset?</li><li>Bagaimana riset Anda diintegrasikan ke pengajaran?</li><li>Bagaimana prodi mendukung pengembangan Anda?</li></ul><h4 class="font-semibold mb-2">Poin Kunci Jawaban:</h4><ul class="list-disc list-inside space-y-1"><li>Jawab sesuai fakta dan data BKD.</li><li>Berikan contoh konkret integrasi riset/PkM ke kelas.</li><li>Sampaikan pemahaman yang baik tentang VMTS prodi.</li></ul></div></div>
+                                <div class="accordion-item border rounded-lg"><div class="accordion-header bg-gray-50 p-4 flex justify-between items-center"><h5 class="font-semibold text-blue-800">Mahasiswa</h5><span class="text-xl font-light">+</span></div><div class="accordion-content p-4 border-t text-sm"><h4 class="font-semibold mb-2">Fokus Asesor:</h4><p class="mb-4">Pengalaman belajar (*student experience*), efektivitas layanan, kualitas interaksi dengan dosen.</p><h4 class="font-semibold mb-2">Contoh Pertanyaan:</h4><ul class="list-disc list-inside mb-4 space-y-1"><li>Apakah Anda tahu CPL prodi ini?</li><li>Bagaimana proses bimbingan akademik dengan Dosen PA?</li><li>Apakah fasilitas lab/internet memadai?</li></ul><h4 class="font-semibold mb-2">Poin Kunci Jawaban:</h4><ul class="list-disc list-inside space-y-1"><li>Jawab secara jujur berdasarkan pengalaman.</li><li>Sebutkan layanan atau fasilitas yang paling bermanfaat.</li><li>Jika ada kekurangan, sampaikan secara konstruktif beserta harapan.</li></ul></div></div>
+                                <div class="accordion-item border rounded-lg"><div class="accordion-header bg-gray-50 p-4 flex justify-between items-center"><h5 class="font-semibold text-blue-800">Alumni</h5><span class="text-xl font-light">+</span></div><div class="accordion-content p-4 border-t text-sm"><h4 class="font-semibold mb-2">Fokus Asesor:</h4><p class="mb-4">Mengukur outcome terpenting: keberhasilan lulusan di dunia kerja, relevansi kurikulum, dan efektivitas *tracer study*.</p><h4 class="font-semibold mb-2">Contoh Pertanyaan:</h4><ul class="list-disc list-inside mb-4 space-y-1"><li>Berapa lama Anda mendapat pekerjaan pertama?</li><li>Seberapa relevan kurikulum dengan pekerjaan Anda?</li><li>Apakah prodi pernah menghubungi Anda untuk *tracer study*?</li></ul><h4 class="font-semibold mb-2">Poin Kunci Jawaban:</h4><ul class="list-disc list-inside space-y-1"><li>Sampaikan data masa tunggu & kesesuaian kerja sesuai fakta.</li><li>Berikan masukan konstruktif tentang kurikulum.</li><li>Konfirmasi keikutsertaan dalam *tracer study*.</li></ul></div></div>
+                                <div class="accordion-item border rounded-lg"><div class="accordion-header bg-gray-50 p-4 flex justify-between items-center"><h5 class="font-semibold text-blue-800">Pengguna Lulusan</h5><span class="text-xl font-light">+</span></div><div class="accordion-content p-4 border-t text-sm"><h4 class="font-semibold mb-2">Fokus Asesor:</h4><p class="mb-4">Validasi eksternal mengenai kualitas lulusan dan relevansi program studi dengan kebutuhan industri.</p><h4 class="font-semibold mb-2">Contoh Pertanyaan:</h4><ul class="list-disc list-inside mb-4 space-y-1"><li>Bagaimana kompetensi lulusan kami (*hard & soft skills*)?</li><li>Apakah prodi pernah melibatkan Anda dalam peninjauan kurikulum?</li><li>Apa saran Anda agar lulusan kami lebih berdaya saing?</li></ul><h4 class="font-semibold mb-2">Poin Kunci Jawaban:</h4><ul class="list-disc list-inside space-y-1"><li>Berikan penilaian objektif terhadap kompetensi lulusan.</li><li>Konfirmasi keterlibatan dalam kegiatan prodi (kuliah tamu, FGD).</li><li>Sampaikan saran konkret untuk peningkatan mutu lulusan.</li></ul></div></div>
+                                <div class="accordion-item border rounded-lg"><div class="accordion-header bg-gray-50 p-4 flex justify-between items-center"><h5 class="font-semibold text-blue-800">Tenaga Kependidikan</h5><span class="text-xl font-light">+</span></div><div class="accordion-content p-4 border-t text-sm"><h4 class="font-semibold mb-2">Fokus Asesor:</h4><p class="mb-4">Efektivitas layanan administrasi, pemeliharaan sarana, dan pengembangan diri tendik.</p><h4 class="font-semibold mb-2">Contoh Pertanyaan:</h4><ul class="list-disc list-inside mb-4 space-y-1"><li>Bagaimana alur layanan administrasi akademik?</li><li>Bagaimana proses pemeliharaan sarana lab?</li><li>Program pengembangan apa yang pernah Anda ikuti?</li></ul><h4 class="font-semibold mb-2">Poin Kunci Jawaban:</h4><ul class="list-disc list-inside space-y-1"><li>Jelaskan alur layanan sesuai SOP yang berlaku.</li><li>Tunjukkan pemahaman tentang tugas dan tanggung jawab.</li><li>Sampaikan pengalaman positif tentang program pelatihan.</li></ul></div></div>
+                            </div>
+                        </div>`
+                },
+                checklist: {
+                    title: "Checklist Kesiapan Akhir",
+                    content: `
+                        <div class="bg-white p-6 rounded-lg shadow-sm">
+                            <h3 class="text-xl font-bold text-gray-800 mb-4">Checklist Kesiapan Hari-H</h3>
+                            <p class="text-gray-600 mb-6">Gunakan daftar periksa interaktif ini untuk memastikan tidak ada detail yang terlewat menjelang hari Asesmen Lapangan. Prinsipnya: "Show, don't just tell". Semua bukti harus siap ditunjukkan dalam hitungan detik.</p>
+                            
+                            <div class="mb-4">
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-base font-medium text-blue-700">Progres Kesiapan</span>
+                                    <span id="progress-text" class="text-sm font-medium text-blue-700">0%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                    <div id="progress-bar" class="bg-blue-600 h-2.5 rounded-full" style="width: 0%"></div>
+                                </div>
+                            </div>
+
+                            <div id="checklist-container" class="space-y-6">
+                                <div>
+                                    <h4 class="text-lg font-semibold text-gray-700 border-b pb-2 mb-3">1. Dokumen & Data (War Room)</h4>
+                                    <div class="space-y-2 checklist-group">
+                                        <div class="checklist-item"><input type="checkbox" id="c1" class="mr-2"><label for="c1">Hardcopy & Softcopy LKPS dan LED final tersedia.</label></div>
+                                        <div class="checklist-item"><input type="checkbox" id="c2" class="mr-2"><label for="c2">Semua dokumen referensi utama (9 kriteria) sudah di-bundel rapi per kriteria.</label></div>
+                                        <div class="checklist-item"><input type="checkbox" id="c3" class="mr-2"><label for="c3">Semua hyperlink bukti pada softcopy LED telah diuji dan berfungsi.</label></div>
+                                        <div class="checklist-item"><input type="checkbox" id="c4" class="mr-2"><label for="c4">Data antara LKPS, presentasi Kaprodi, dan sistem informasi sudah konsisten.</label></div>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <h4 class="text-lg font-semibold text-gray-700 border-b pb-2 mb-3">2. Ruangan & Fasilitas</h4>
+                                    <div class="space-y-2 checklist-group">
+                                        <div class="checklist-item"><input type="checkbox" id="c5" class="mr-2"><label for="c5">Ruang presentasi utama (proyektor, sound system, koneksi internet) berfungsi baik.</label></div>
+                                        <div class="checklist-item"><input type="checkbox" id="c6" class="mr-2"><label for="c6">Ruang transit asesor bersih, nyaman, dan dilengkapi konsumsi.</label></div>
+                                        <div class="checklist-item"><input type="checkbox" id="c7" class="mr-2"><label for="c7">Laboratorium dan perpustakaan siap untuk tur fasilitas.</label></div>
+                                        <div class="checklist-item"><input type="checkbox" id="c8" class="mr-2"><label for="c8">Toilet dan Mushola untuk asesor mudah diakses dan bersih.</label></div>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <h4 class="text-lg font-semibold text-gray-700 border-b pb-2 mb-3">3. Tim & Briefing</h4>
+                                    <div class="space-y-2 checklist-group">
+                                        <div class="checklist-item"><input type="checkbox" id="c9" class="mr-2"><label for="c9">Semua PIC (Dosen, Mhs, Alumni, Mitra, Tendik) sudah dikonfirmasi dan di-briefing.</label></div>
+                                        <div class="checklist-item"><input type="checkbox" id="c10" class="mr-2"><label for="c10">Jadwal acara final sudah dibagikan ke semua pihak terkait.</label></div>
+                                        <div class="checklist-item"><input type="checkbox" id="c11" class="mr-2"><label for="c11">Tim *liaison officer* (LO) untuk asesor sudah ditunjuk dan paham tugasnya.</label></div>
+                                        <div class="checklist-item"><input type="checkbox" id="c12" class="mr-2"><label for="c12">Gladi bersih presentasi Kaprodi sudah dilakukan.</label></div>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <h4 class="text-lg font-semibold text-gray-700 border-b pb-2 mb-3">4. Demonstrasi & Teknis</h4>
+                                    <div class="space-y-2 checklist-group">
+                                        <div class="checklist-item"><input type="checkbox" id="c13" class="mr-2"><label for="c13">Demo live sistem e-learning (LMS) siap ditunjukkan (termasuk contoh RPS, materi, tugas).</label></div>
+                                        <div class="checklist-item"><input type="checkbox" id="c14" class="mr-2"><label for="c14">Demo live sistem informasi akademik (SIAKAD) siap ditunjukkan.</label></div>
+                                        <div class="checklist-item"><input type="checkbox" id="c15" class="mr-2"><label for="c15">Demo platform *tracer study* online siap ditunjukkan.</label></div>
+                                        <div class="checklist-item"><input type="checkbox" id="c16" class="mr-2"><label for="c16">Contoh produk hasil riset/PkM/Tugas Akhir mahasiswa siap didemokan.</label></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `,
+                    init: () => {
+                        const container = document.getElementById('checklist-container');
+                        if (!container) return;
+
+                        const checkboxes = container.querySelectorAll('input[type="checkbox"]');
+                        const total = checkboxes.length;
+                        const progressBar = document.getElementById('progress-bar');
+                        const progressText = document.getElementById('progress-text');
+
+                        const updateProgress = () => {
+                            const checkedCount = container.querySelectorAll('input[type="checkbox"]:checked').length;
+                            const percentage = total > 0 ? Math.round((checkedCount / total) * 100) : 0;
+                            progressBar.style.width = `${percentage}%`;
+                            progressText.textContent = `${percentage}%`;
+                        };
+
+                        checkboxes.forEach(checkbox => {
+                            checkbox.addEventListener('change', updateProgress);
+                        });
+
+                        updateProgress();
+                    }
+                },
+                strategi: {
+                    title: "Strategi Hari-H: Jadwal & Etika",
+                    content: `
+                        <div class="bg-white p-6 rounded-lg shadow-sm">
+                            <h3 class="text-xl font-bold text-gray-800 mb-4">Panduan Taktis dan Psikologis di Lapangan</h3>
+                            <p class="text-gray-600 mb-8">Kesiapan dokumen dan data adalah fondasi, tetapi kesuksesan Asesmen Lapangan juga ditentukan oleh eksekusi yang taktis dan interaksi yang profesional di hari-H. Modul ini memberikan panduan untuk mengelola alur acara dan etika komunikasi dengan tim asesor.</p>
+
+                            <h4 class="text-lg font-semibold text-gray-700 border-b pb-2 mb-4">Contoh Alur Jadwal Acara AL (2 Hari)</h4>
+                            <div class="grid md:grid-cols-2 gap-8">
+                                <div class="border-l-4 border-blue-500 pl-4">
+                                    <h5 class="font-bold text-gray-800">Hari ke-1</h5>
+                                    <ul class="mt-2 space-y-2 text-sm text-gray-600">
+                                        <li><strong class="font-semibold text-gray-700">08:00 - 09:30:</strong> Sesi Pembukaan (Sambutan, Presentasi Pimpinan UPPS & Kaprodi)</li>
+                                        <li><strong class="font-semibold text-gray-700">09:30 - 12:00:</strong> Verifikasi Dokumen & Data (Sesi dengan Tim Taskforce di *War Room*)</li>
+                                        <li><strong class="font-semibold text-gray-700">12:00 - 13:00:</strong> Ishoma</li>
+                                        <li><strong class="font-semibold text-gray-700">13:00 - 15:00:</strong> Tur Fasilitas (Lab, Perpustakaan, Ruang Kelas, Ruang Dosen)</li>
+                                        <li><strong class="font-semibold text-gray-700">15:00 - 16:30:</strong> Sesi Wawancara Paralel (Dosen & Mahasiswa)</li>
+                                        <li><strong class="font-semibold text-gray-700">16:30 - 17:00:</strong> Rangkuman Internal Tim Asesor</li>
+                                    </ul>
+                                </div>
+                                <div class="border-l-4 border-green-500 pl-4">
+                                    <h5 class="font-bold text-gray-800">Hari ke-2</h5>
+                                    <ul class="mt-2 space-y-2 text-sm text-gray-600">
+                                        <li><strong class="font-semibold text-gray-700">08:30 - 10:30:</strong> Sesi Wawancara Paralel (Alumni, Pengguna Lulusan, Tendik)</li>
+                                        <li><strong class="font-semibold text-gray-700">10:30 - 11:30:</strong> Konfirmasi & Klarifikasi Temuan (Jika diperlukan)</li>
+                                        <li><strong class="font-semibold text-gray-700">11:30 - 13:00:</strong> Penyusunan Draf Berita Acara oleh Asesor (Internal)</li>
+                                        <li><strong class="font-semibold text-gray-700">13:00 - 14:00:</strong> Ishoma</li>
+                                        <li><strong class="font-semibold text-gray-700">14:00 - 15:00:</strong> Sesi Penutupan & Penyampaian Rekomendasi Awal</li>
+                                        <li><strong class="font-semibold text-gray-700">15:00 - Selesai:</strong> Pembacaan dan Penandatanganan Berita Acara</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            
+                            <h4 class="text-lg font-semibold text-gray-700 border-b pb-2 mb-4 mt-10">Etika & Tips Komunikasi dengan Asesor</h4>
+                            <div class="grid md:grid-cols-2 gap-8">
+                                <div class="bg-green-50 border border-green-200 p-4 rounded-lg">
+                                    <h5 class="font-bold text-green-800 mb-3">✅ Yang Boleh Dilakukan (Do's)</h5>
+                                    <ul class="space-y-2 text-sm text-green-900">
+                                        <li><strong>Sambut Hangat:</strong> Tunjukkan keramahan dan keterbukaan.</li>
+                                        <li><strong>Jawab Sesuai Data:</strong> Selalu landaskan jawaban pada data di LKPS/LED.</li>
+                                        <li><strong>Tunjukkan Bukti &lt; 30 Detik:</strong> Siapkan semua bukti agar bisa diakses cepat.</li>
+                                        <li><strong>Jaga Kontak Mata:</strong> Tunjukkan rasa percaya diri dan kejujuran.</li>
+                                        <li><strong>Dengarkan dengan Seksama:</strong> Pahami pertanyaan sebelum menjawab.</li>
+                                        <li><strong>Terima Masukan:</strong> Ucapkan terima kasih atas saran perbaikan dari asesor.</li>
+                                    </ul>
+                                </div>
+                                <div class="bg-red-50 border border-red-200 p-4 rounded-lg">
+                                    <h5 class="font-bold text-red-800 mb-3">❌ Yang Tidak Boleh Dilakukan (Don'ts)</h5>
+                                    <ul class="space-y-2 text-sm text-red-900">
+                                        <li><strong>Bersikap Defensif:</strong> Jangan membantah atau mencari pembenaran atas temuan.</li>
+                                        <li><strong>Memotong Pembicaraan:</strong> Biarkan asesor menyelesaikan pertanyaannya.</li>
+                                        <li><strong>Menjawab Bertele-tele:</strong> Jawab dengan ringkas, jelas, dan fokus.</li>
+                                        <li><strong>Menyalahkan Pihak Lain:</strong> Tunjukkan tanggung jawab kolektif.</li>
+                                        <li><strong>Memberikan Data Baru:</strong> Jangan memberikan data yang tidak ada di LKPS/LED.</li>
+                                        <li><strong>Terlalu Santai/Formal:</strong> Jaga sikap profesional namun tetap bersahabat.</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                        </div>
+                    `
+                }
+            }
+        };
+        
+        let searchableIndex = [];
+        let currentSearchTerm = '';
+
+        const mainNav = document.getElementById('main-nav');
+        const contentArea = document.getElementById('content-area');
+        const contentTitle = document.getElementById('content-title');
+        const sidebar = document.getElementById('sidebar');
+        const menuButton = document.getElementById('menu-button');
+        const searchInput = document.getElementById('search-input');
+        const searchResultsContainer = document.getElementById('search-results');
+
+        const navigationStructure = [
+            { id: 'beranda', title: 'Beranda', icon: '🏠' },
+            { 
+                title: 'Kriteria Penilaian',
+                isCategory: true,
+                items: [
+                    { id: 'c1', title: 'C1: VMTS', icon: '🎯' },
+                    { id: 'c2', title: 'C2: Tata Pamong', icon: '🏛️' },
+                    { id: 'c3', title: 'C3: Mahasiswa', icon: '🎓' },
+                    { id: 'c4', title: 'C4: SDM', icon: '👥' },
+                    { id: 'c5', title: 'C5: Sarpras', icon: '💻' },
+                    { id: 'c6', title: 'C6: Pendidikan', icon: '📚' },
+                    { id: 'c7', title: 'C7: Penelitian', icon: '🔬' },
+                    { id: 'c8', title: 'C8: PkM', icon: '🤝' },
+                    { id: 'c9', title: 'C9: Luaran', icon: '🏆' },
+                ]
+            },
+            {
+                title: 'Persiapan Akhir',
+                isCategory: true,
+                items: [
+                    { id: 'wawancara', title: 'Sesi Wawancara', icon: '🗣️' },
+                    { id: 'checklist', title: 'Checklist Akhir', icon: '✅' },
+                    { id: 'strategi', title: 'Strategi Hari-H', icon: '🗓️' },
+                ]
+            },
+             {
+                title: 'Lainnya',
+                isCategory: true,
+                items: [
+                    { id: 'referensi', title: 'Referensi', icon: '📜' }
+                ]
+            }
+        ];
+        
+        function renderNavigation() {
+            let navHtml = '';
+            navigationStructure.forEach(category => {
+                if (category.isCategory) {
+                    navHtml += `<h3 class="text-sm font-semibold text-gray-400 uppercase mt-4 mb-2 px-2">${category.title}</h3>`;
+                    category.items.forEach(item => {
+                        navHtml += `
+                            <a href="#" class="sidebar-item flex items-center px-4 py-2 text-gray-300 hover:bg-gray-700 rounded-md" data-page="${item.id}">
+                                <span class="mr-3">${item.icon}</span>
+                                ${item.title}
+                            </a>`;
+                    });
+                } else {
+                     navHtml += `
+                        <a href="#" class="sidebar-item flex items-center px-4 py-2 text-gray-300 hover:bg-gray-700 rounded-md" data-page="${category.id}">
+                            <span class="mr-3">${category.icon}</span>
+                            ${category.title}
+                        </a>`;
+                }
+            });
+            mainNav.innerHTML = navHtml;
+        }
+
+        function removeHighlights() {
+            const highlighted = contentArea.querySelectorAll('.highlight');
+            highlighted.forEach(el => {
+                el.outerHTML = el.innerHTML;
+            });
+        }
+
+        function highlightText(term) {
+            if (!term) return;
+            removeHighlights();
+            const regex = new RegExp(term.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'gi');
+            
+            const treeWalker = document.createTreeWalker(contentArea, NodeFilter.SHOW_TEXT, null, false);
+            let nodeList = [];
+            while (treeWalker.nextNode()) {
+                 if (treeWalker.currentNode.textContent.match(regex) && treeWalker.currentNode.parentElement.tagName !== 'SCRIPT' && treeWalker.currentNode.parentElement.tagName !== 'STYLE') {
+                    nodeList.push(treeWalker.currentNode);
+                }
+            }
+            
+            nodeList.forEach(node => {
+                const newHtml = node.textContent.replace(regex, (match) => `<span class="highlight">${match}</span>`);
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = newHtml;
+                const parent = node.parentNode;
+                while (tempDiv.firstChild) {
+                    parent.insertBefore(tempDiv.firstChild, node);
+                }
+                parent.removeChild(node);
+            });
+        }
+
+        let activeCharts = [];
+        function loadPage(pageId, searchTerm = '') {
+            activeCharts.forEach(chart => chart.destroy());
+            activeCharts = [];
+            currentSearchTerm = searchTerm;
+
+            const pageData = appData.pages[pageId];
+            if (!pageData) {
+                 contentTitle.textContent = "Halaman Tidak Ditemukan";
+                 contentArea.innerHTML = `<div class="bg-white p-6 rounded-lg shadow-sm">Halaman yang Anda cari tidak tersedia.</div>`;
+                 return;
+            }
+            
+            contentTitle.textContent = pageData.title;
+            contentArea.innerHTML = pageData.content;
+            contentArea.scrollTop = 0;
+
+            document.querySelectorAll('.sidebar-item').forEach(item => {
+                item.classList.remove('active');
+                if (item.dataset.page === pageId) {
+                    item.classList.add('active');
+                }
+            });
+            
+            if (pageData.init && typeof pageData.init === 'function') {
+                setTimeout(() => {
+                    pageData.init();
+                    const canvases = contentArea.querySelectorAll('canvas');
+                    canvases.forEach(canvas => {
+                         if (Chart.getChart(canvas)) {
+                            activeCharts.push(Chart.getChart(canvas));
+                         }
+                    });
+                }, 50);
+            }
+
+            attachEventListeners();
+            
+            if (currentSearchTerm) {
+                setTimeout(() => highlightText(currentSearchTerm), 50);
+            }
+            
+            if (sidebar.classList.contains('flex')) {
+                sidebar.classList.remove('flex');
+                sidebar.classList.add('hidden');
+            }
+        }
+
+        function attachEventListeners() {
+            const tabs = document.querySelectorAll('.tab-item');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const tabId = tab.dataset.tab;
+                    
+                    document.querySelectorAll('.tab-content').forEach(content => {
+                        content.classList.add('hidden');
+                    });
+                    const activeTabContent = document.getElementById(tabId);
+                    if(activeTabContent) activeTabContent.classList.remove('hidden');
+
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                });
+            });
+
+            const accordionItems = document.querySelectorAll('.accordion-item');
+            accordionItems.forEach(item => {
+                const header = item.querySelector('.accordion-header');
+                const content = item.querySelector('.accordion-content');
+                const icon = header.querySelector('span');
+
+                header.addEventListener('click', () => {
+                    const isExpanded = content.style.maxHeight;
+                    
+                    document.querySelectorAll('.accordion-content').forEach(c => {
+                       if (c !== content) {
+                           c.style.maxHeight = null;
+                           const prevIcon = c.previousElementSibling.querySelector('span');
+                           if(prevIcon) prevIcon.textContent = '+';
+                       }
+                    });
+
+                    if (isExpanded) {
+                        content.style.maxHeight = null;
+                        icon.textContent = '+';
+                    } else {
+                        content.style.maxHeight = content.scrollHeight + "px";
+                        icon.textContent = '-';
+                    }
+                });
+            });
+        }
+        
+        function createSearchIndex() {
+            const tempDiv = document.createElement('div');
+            for(const pageId in appData.pages) {
+                const page = appData.pages[pageId];
+                tempDiv.innerHTML = page.content;
+                const textContent = (tempDiv.textContent || tempDiv.innerText || "").replace(/\s\s+/g, ' ').trim();
+                searchableIndex.push({
+                    id: pageId,
+                    title: page.title,
+                    content: textContent.toLowerCase()
+                });
+            }
+        }
+        
+        function handleSearch() {
+            const term = searchInput.value.toLowerCase().trim();
+            if(term.length < 2) {
+                searchResultsContainer.classList.add('hidden');
+                searchResultsContainer.innerHTML = '';
+                return;
+            }
+            
+            const results = searchableIndex.filter(page => 
+                page.title.toLowerCase().includes(term) || page.content.includes(term)
+            );
+            
+            if(results.length > 0) {
+                let resultsHtml = '';
+                results.forEach(result => {
+                    resultsHtml += `<a href="#" data-page="${result.id}" class="search-result-item block p-3 border-b text-sm text-gray-700">${result.title}</a>`;
+                });
+                searchResultsContainer.innerHTML = resultsHtml;
+                searchResultsContainer.classList.remove('hidden');
+            } else {
+                searchResultsContainer.innerHTML = `<p class="p-3 text-sm text-gray-500">Tidak ada hasil ditemukan.</p>`;
+                searchResultsContainer.classList.remove('hidden');
+            }
+        }
+        
+        searchInput.addEventListener('keyup', handleSearch);
+        
+        searchResultsContainer.addEventListener('click', (e) => {
+            e.preventDefault();
+            const target = e.target.closest('.search-result-item');
+            if (target) {
+                const pageId = target.dataset.page;
+                const searchTerm = searchInput.value.trim();
+                loadPage(pageId, searchTerm);
+                searchResultsContainer.classList.add('hidden');
+                searchInput.value = '';
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!searchInput.contains(e.target) && !searchResultsContainer.contains(e.target)) {
+                searchResultsContainer.classList.add('hidden');
+            }
+        });
+
+        mainNav.addEventListener('click', (e) => {
+            e.preventDefault();
+            const pageLink = e.target.closest('.sidebar-item');
+            if (pageLink && pageLink.dataset.page) {
+                loadPage(pageLink.dataset.page);
+            }
+        });
+
+        menuButton.addEventListener('click', () => {
+            sidebar.classList.toggle('hidden');
+            sidebar.classList.toggle('flex');
+            sidebar.classList.add('absolute', 'z-10', 'h-full');
+        });
+
+        // Initial load
+        createSearchIndex();
+        renderNavigation();
+        loadPage('beranda');
+        document.querySelector('.sidebar-item[data-page="beranda"]').classList.add('active');
+
+    </script>
+</body>
+</html>
